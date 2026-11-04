@@ -22,11 +22,25 @@ sealed interface FsrsCardParams {
 
     object New : FsrsCardParams
 
+    /**
+     * @param stability long-term stability in days
+     * @param shortStability short-term stability in days (FSRS-7 dual-stability state)
+     */
     data class Existing(
         val difficulty: Double,
         val stability: Double,
+        val shortStability: Double,
         val reviewTime: Instant
-    ) : FsrsCardParams
+    ) : FsrsCardParams {
+
+        val memoryState: Fsrs7.MemoryState
+            get() = Fsrs7.MemoryState(
+                longStability = stability,
+                shortStability = shortStability,
+                difficulty = difficulty
+            )
+
+    }
 
 }
 
@@ -35,7 +49,11 @@ enum class FsrsCardStatus {
 }
 
 enum class FsrsReviewRating(val grade: Int) {
-    Again(1), Hard(2), Good(3), Easy(4)
+    Again(1), Hard(2), Good(3), Easy(4);
+
+    companion object {
+        fun fromGrade(grade: Int): FsrsReviewRating = entries.first { it.grade == grade }
+    }
 }
 
 data class FsrsAnswers(

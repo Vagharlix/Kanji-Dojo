@@ -59,6 +59,7 @@ interface FsrsCardRepository : ObservableRepository {
 interface ReviewHistoryRepository {
     suspend fun addReview(item: ReviewHistoryItem)
     suspend fun getReviews(start: Instant, end: Instant): List<ReviewHistoryItem>
+    suspend fun getAllReviews(): List<ReviewHistoryItem>
     suspend fun getFirstReviewTime(key: String, practiceType: Long): Instant?
     suspend fun getDeckLastReview(deckId: Long, practiceTypes: List<Long>): Instant?
     suspend fun getTotalReviewsCount(): Long

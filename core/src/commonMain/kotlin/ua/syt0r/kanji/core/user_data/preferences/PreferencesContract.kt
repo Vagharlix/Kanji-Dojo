@@ -54,6 +54,9 @@ interface PreferencesContract {
         val vocabDashboardSortByTime: SuspendedProperty<Boolean>
 
         val dailyResetTime: SuspendedProperty<LocalTime>
+
+        /** FSRS desired retention, in percent (70..99) */
+        val desiredRetentionPercent: SuspendedProperty<Int>
     }
 
     interface PracticePreferences {

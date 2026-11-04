@@ -291,6 +291,47 @@ interface StatsStrings {
     val formattedDuration: (Duration) -> String
     val uniqueLettersReviewed: String
     val uniqueWordsReviewed: String
+
+    // Heatmap
+    val heatmapDailyAverage: (reviews: Int) -> String
+    val heatmapDaysLearned: (percent: String) -> String
+    val heatmapLongestStreak: (days: Int) -> String
+    val heatmapCurrentStreak: (days: Int) -> String
+    val heatmapSelectedDay: (date: LocalDate, reviews: Int) -> String
+    val heatmapHint: String
+    val heatmapLess: String
+    val heatmapMore: String
+
+    // FSRS
+    val fsrsTitle: String
+    val fsrsDesiredRetention: (percent: String) -> String
+    val fsrsFilterAll: String
+    val fsrsFilterLetters: String
+    val fsrsFilterWords: String
+    val fsrsNoData: String
+    val fsrsAverageRetrievability: String
+    val fsrsEstimatedKnown: String
+    val fsrsAverageStability: String
+    val fsrsAverageDifficulty: String
+    val fsrsFormattedDays: (days: Double) -> String
+    val fsrsCardsTitle: String
+    val fsrsLearning: String
+    val fsrsYoung: String
+    val fsrsMature: String
+    val fsrsTotal: String
+    val fsrsTrueRetentionTitle: String
+    val fsrsTrueRetentionHint: String
+    val fsrsPredicted: String
+    val fsrsPeriod: (period: ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.RetentionPeriod) -> String
+    val fsrsForecastTitle: String
+    val fsrsForecastSummary: (overdue: Int, tomorrow: Int, dailyAverage: String) -> String
+    val fsrsForecastDay: (dayIndex: Int) -> String
+    val fsrsStabilityTitle: String
+    val fsrsStabilityBucket: (bucket: ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StabilityBucket) -> String
+    val fsrsDifficultyTitle: String
+    val fsrsRetrievabilityTitle: String
+    val fsrsChartSelection: (label: String, count: Int) -> String
+    val fsrsChartHint: String
 }
 
 interface SearchStrings {

@@ -12,7 +12,10 @@ data class StatsData(
     val todayStats: DayStats,
     val monthStats: RefreshableStats<YearMonth, TimePeriodStats>,
     val yearStats: RefreshableStats<Int, TimePeriodStats>,
-    val totalStats: TotalStats
+    val totalStats: TotalStats,
+    val heatmapSummary: HeatmapSummary,
+    val fsrsStats: Map<StatsFilter, FsrsStats>,
+    val selectedFilter: MutableState<StatsFilter>
 )
 
 data class DayStats(

@@ -5,7 +5,6 @@ import app.cash.sqldelight.db.SqlDriver
 import kotlinx.datetime.Instant
 import ua.syt0r.kanji.core.srs.SrsCardKey
 import ua.syt0r.kanji.core.srs.fsrs.DefaultFsrsScheduler
-import ua.syt0r.kanji.core.srs.fsrs.Fsrs5
 import ua.syt0r.kanji.core.srs.fsrs.FsrsCardParams
 import ua.syt0r.kanji.core.user_data.database.UserDataDatabaseContract
 
@@ -45,7 +44,7 @@ object UserDataDatabaseMigrationAfter8 : UserDataDatabaseContract.Migration {
             parameters = 0
         ).value
 
-        val srsScheduler = DefaultFsrsScheduler(Fsrs5())
+        val srsScheduler = DefaultFsrsScheduler()
 
         val fsrsCards = items
             .groupBy { it.key to it.practiceType }

@@ -3,12 +3,15 @@ package ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.use_cas
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -21,12 +24,16 @@ import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.core.refreshableDataFlow
 import ua.syt0r.kanji.core.srs.LetterPracticeType
 import ua.syt0r.kanji.core.srs.LetterSrsManager
+import ua.syt0r.kanji.core.srs.SrsCardRepository
+import ua.syt0r.kanji.core.srs.desiredRetention
 import ua.syt0r.kanji.core.srs.VocabPracticeType
 import ua.syt0r.kanji.core.time.TimeUtils
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
 import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import ua.syt0r.kanji.presentation.LifecycleState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.DayStats
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.FsrsStatsCalculator
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StatsFilter
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.RefreshableStats
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StatsData
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.TimePeriodStats
@@ -43,9 +50,13 @@ interface SubscribeOnStatsDataUseCase {
 class DefaultSubscribeOnStatsDataUseCase(
     private val letterSrsManager: LetterSrsManager,
     private val reviewHistoryRepository: ReviewHistoryRepository,
+    private val srsCardRepository: SrsCardRepository,
+    private val fsrsStatsCalculator: FsrsStatsCalculator,
     private val timeUtils: TimeUtils,
     private val appPreferences: PreferencesContract.AppPreferences
 ) : SubscribeOnStatsDataUseCase {
+
+    private val selectedFilter = mutableStateOf(StatsFilter.All)
 
     override fun invoke(
         lifecycleState: StateFlow<LifecycleState>
@@ -68,6 +79,32 @@ class DefaultSubscribeOnStatsDataUseCase(
             currentDateTime.date
         }
 
+        val timeZone = TimeZone.currentSystemDefault()
+        val toSrsDate: (Instant) -> LocalDate = { instant ->
+            val localDateTime = instant.toLocalDateTime(timeZone)
+            if (localDateTime.time < resetTime) localDateTime.date.minus(1, DateTimeUnit.DAY)
+            else localDateTime.date
+        }
+
+        val allReviews = reviewHistoryRepository.getAllReviews()
+        val cards = srsCardRepository.getAll().mapValues { it.value.fsrsCard }
+        val desiredRetention = appPreferences.desiredRetention()
+        val now = timeUtils.now()
+
+        val (heatmapSummary, fsrsStats) = withContext(Dispatchers.Default) {
+            fsrsStatsCalculator.heatmap(allReviews, today, toSrsDate) to
+                    fsrsStatsCalculator.calculate(
+                        FsrsStatsCalculator.Input(
+                            reviews = allReviews,
+                            cards = cards,
+                            now = now,
+                            today = today,
+                            toSrsDate = toSrsDate,
+                            desiredRetention = desiredRetention
+                        )
+                    )
+        }
+
         return StatsData(
             todayStats = getDayStats(today, resetTime),
             monthStats = refreshableStats(
@@ -80,7 +117,10 @@ class DefaultSubscribeOnStatsDataUseCase(
                 initialTimePeriod = today.year,
                 statsProvider = { getYearStats(it, resetTime) }
             ),
-            totalStats = getTotalStats()
+            totalStats = getTotalStats(),
+            heatmapSummary = heatmapSummary,
+            fsrsStats = fsrsStats,
+            selectedFilter = selectedFilter
         )
     }
 

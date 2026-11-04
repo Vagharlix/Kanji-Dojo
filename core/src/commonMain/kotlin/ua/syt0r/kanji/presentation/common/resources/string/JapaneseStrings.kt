@@ -14,6 +14,8 @@ import kotlinx.datetime.format
 import ua.syt0r.kanji.presentation.common.CommonDateTimeFormat
 import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
 import ua.syt0r.kanji.presentation.common.withClickableUrl
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.RetentionPeriod
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StabilityBucket
 import kotlin.time.Duration
 
 object JapaneseStrings : Strings {
@@ -217,6 +219,74 @@ object JapaneseStatsStrings : StatsStrings {
     override val formattedDuration: (Duration) -> String = { formatDuration(it) }
     override val uniqueLettersReviewed: String = "練習した異なる文字の数"
     override val uniqueWordsReviewed: String = "練習した異なる単語の数"
+
+    override val heatmapDailyAverage: (Int) -> String = { "1日平均: ${it}回" }
+    override val heatmapDaysLearned: (String) -> String = { "学習日の割合: $it" }
+    override val heatmapLongestStreak: (Int) -> String = { "最長連続記録: ${it}日" }
+    override val heatmapCurrentStreak: (Int) -> String = { "現在の連続記録: ${it}日" }
+    override val heatmapSelectedDay: (LocalDate, Int) -> String = { date, reviews ->
+        "${date.year}年${date.monthNumber}月${date.dayOfMonth}日: ${reviews}回"
+    }
+    override val heatmapHint: String = "日付をタップすると復習回数が表示されます"
+    override val heatmapLess: String = "少"
+    override val heatmapMore: String = "多"
+
+    override val fsrsTitle: String = "記憶 (FSRS-7)"
+    override val fsrsDesiredRetention: (String) -> String = { "目標保持率: $it" }
+    override val fsrsFilterAll: String = "すべて"
+    override val fsrsFilterLetters: String = "文字"
+    override val fsrsFilterWords: String = "単語"
+    override val fsrsNoData: String = "まだ十分な復習データがありません"
+    override val fsrsAverageRetrievability: String = "平均想起確率"
+    override val fsrsEstimatedKnown: String = "覚えている推定数"
+    override val fsrsAverageStability: String = "平均安定性"
+    override val fsrsAverageDifficulty: String = "平均難易度"
+    override val fsrsFormattedDays: (Double) -> String = { formatStatsDays(it, "日", "ヶ月", "年") }
+    override val fsrsCardsTitle: String = "カードの状態"
+    override val fsrsLearning: String = "学習中"
+    override val fsrsYoung: String = "若い"
+    override val fsrsMature: String = "成熟"
+    override val fsrsTotal: String = "合計"
+    override val fsrsTrueRetentionTitle: String = "実際の保持率"
+    override val fsrsTrueRetentionHint: String =
+        "前回の復習とは別の日に行った復習の正解率です（難しい・正解・簡単を正解として数えます）。若い: 前回の復習から21日未満。予測: 同じ復習に対してFSRS-7が予測した平均想起確率。"
+    override val fsrsPredicted: String = "予測"
+    override val fsrsPeriod: (RetentionPeriod) -> String = {
+        when (it) {
+            RetentionPeriod.Today -> "今日"
+            RetentionPeriod.Yesterday -> "昨日"
+            RetentionPeriod.Week -> "過去7日間"
+            RetentionPeriod.Month -> "過去30日間"
+            RetentionPeriod.Year -> "過去1年間"
+            RetentionPeriod.AllTime -> "全期間"
+        }
+    }
+    override val fsrsForecastTitle: String = "復習予定"
+    override val fsrsForecastSummary: (Int, Int, String) -> String = { overdue, tomorrow, average ->
+        "期限切れ: $overdue · 明日: $tomorrow · 1日平均: $average"
+    }
+    override val fsrsForecastDay: (Int) -> String = {
+        when (it) {
+            0 -> "今日"
+            1 -> "明日"
+            else -> "${it}日後"
+        }
+    }
+    override val fsrsStabilityTitle: String = "安定性"
+    override val fsrsStabilityBucket: (StabilityBucket) -> String = {
+        when (it) {
+            StabilityBucket.LessThanDay -> "<1日"
+            StabilityBucket.Week -> "1-7日"
+            StabilityBucket.ThreeWeeks -> "1-3週"
+            StabilityBucket.ThreeMonths -> "3週-3ヶ月"
+            StabilityBucket.Year -> "3ヶ月-1年"
+            StabilityBucket.MoreThanYear -> ">1年"
+        }
+    }
+    override val fsrsDifficultyTitle: String = "難易度"
+    override val fsrsRetrievabilityTitle: String = "想起確率"
+    override val fsrsChartSelection: (String, Int) -> String = { label, count -> "$label: ${count}枚" }
+    override val fsrsChartHint: String = "棒をタップすると詳細が表示されます"
 }
 
 

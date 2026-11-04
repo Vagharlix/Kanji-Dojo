@@ -43,6 +43,9 @@ class SqlDelightReviewHistoryRepository(
             .map { it.converted() }
     }
 
+    override suspend fun getAllReviews(): List<ReviewHistoryItem> = userDataDatabaseManager
+        .readTransaction { getAllReviewHistory().executeAsList().map { it.converted() } }
+
     override suspend fun getFirstReviewTime(
         key: String,
         practiceType: Long

@@ -9,17 +9,36 @@ import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewRating.Again
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewRating.Easy
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewRating.Good
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewRating.Hard
+import kotlin.math.roundToLong
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit
+
+const val DEFAULT_DESIRED_RETENTION = 0.9
+const val MIN_DESIRED_RETENTION = 0.70
+const val MAX_DESIRED_RETENTION = 0.99
 
 interface FsrsScheduler {
+
     fun newCard(): FsrsCard
-    fun schedule(card: FsrsCard, reviewTime: Instant): FsrsAnswers
+
+    fun schedule(
+        card: FsrsCard,
+        reviewTime: Instant,
+        desiredRetention: Double = DEFAULT_DESIRED_RETENTION
+    ): FsrsAnswers
+
 }
 
+/**
+ * Schedules cards with the FSRS-7 memory model. FSRS-7 models short-term memory itself,
+ * so there are no fixed learning steps: every interval (including same-day ones) is the
+ * time at which predicted recall probability drops to the desired retention.
+ */
 class DefaultFsrsScheduler(
-    private val fsrsAlgorithm: FsrsAlgorithm,
+    private val fsrs: Fsrs7 = Fsrs7(),
+    private val maxInterval: Duration = 36500.days
 ) : FsrsScheduler {
 
     override fun newCard() = FsrsCard(
@@ -30,67 +49,100 @@ class DefaultFsrsScheduler(
         repeats = 0
     )
 
-    override fun schedule(card: FsrsCard, reviewTime: Instant): FsrsAnswers {
+    override fun schedule(
+        card: FsrsCard,
+        reviewTime: Instant,
+        desiredRetention: Double
+    ): FsrsAnswers {
+        val retention = desiredRetention.coerceIn(MIN_DESIRED_RETENTION, MAX_DESIRED_RETENTION)
 
-        fun FsrsCard.nextCard(
-            status: FsrsCardStatus,
-            rating: FsrsReviewRating,
-            overriddenInterval: Duration? = null,
-            incrementLapses: Boolean = false
-        ): FsrsCard {
-            val updatedParams = fsrsAlgorithm.updatedParams(this, rating, reviewTime)
+        fun nextState(rating: FsrsReviewRating): Fsrs7.MemoryState {
+            return when (val params = card.params) {
+                FsrsCardParams.New -> fsrs.initialState(rating)
+                is FsrsCardParams.Existing -> {
+                    val elapsedDays = (reviewTime - params.reviewTime)
+                        .toDouble(DurationUnit.DAYS)
+                        .coerceAtLeast(0.0)
+                    fsrs.nextState(params.memoryState, elapsedDays, rating)
+                }
+            }
+        }
+
+        val states = FsrsReviewRating.entries.associateWith { nextState(it) }
+        val rawIntervals = states.mapValues { (_, state) ->
+            toInterval(fsrs.interval(state, retention))
+        }
+
+        // Keep the buttons ordered: again <= hard <= good <= easy
+        val againInterval = rawIntervals.getValue(Again)
+        val goodRaw = rawIntervals.getValue(Good)
+        val hardInterval = maxOf(againInterval, minOf(rawIntervals.getValue(Hard), goodRaw))
+        val goodInterval = goodRaw.atLeastAfter(hardInterval)
+        val easyInterval = rawIntervals.getValue(Easy).atLeastAfter(goodInterval)
+
+        fun answer(rating: FsrsReviewRating, interval: Duration): FsrsCard {
+            val state = states.getValue(rating)
+            val status = when {
+                rating == Again -> when (card.status) {
+                    New, Learning -> Learning
+                    Review, Relearning -> Relearning
+                }
+
+                interval >= 1.days -> Review
+                card.status == Review || card.status == Relearning -> Relearning
+                else -> Learning
+            }
+            val isLapse = rating == Again && card.status == Review
             return FsrsCard(
                 status = status,
-                params = updatedParams,
-                interval = overriddenInterval ?: fsrsAlgorithm.nextInterval(updatedParams),
-                lapses = if (incrementLapses) lapses + 1 else lapses,
-                repeats = repeats + 1
+                params = FsrsCardParams.Existing(
+                    difficulty = state.difficulty,
+                    stability = state.longStability,
+                    shortStability = state.shortStability,
+                    reviewTime = reviewTime
+                ),
+                interval = interval,
+                lapses = if (isLapse) card.lapses + 1 else card.lapses,
+                repeats = card.repeats + 1
             )
         }
 
-        val again: FsrsCard
-        val hard: FsrsCard
-        val good: FsrsCard
-        val easy: FsrsCard
-
-        when (card.status) {
-            New -> {
-                again = card.nextCard(Learning, Again, 1.minutes)
-                hard = card.nextCard(Learning, Hard, 5.minutes)
-                good = card.nextCard(Learning, Good, 10.minutes)
-                easy = card.nextCard(Review, Easy)
-            }
-
-            Learning,
-            Relearning -> {
-                again = card.nextCard(card.status, Again, 5.minutes)
-                hard = card.nextCard(card.status, Hard, 10.minutes)
-                good = card.nextCard(Review, Good)
-
-                val tmpEasy = card.nextCard(Review, Easy)
-                val easyInterval = maxOf(tmpEasy.interval, good.interval + 1.days)
-
-                easy = tmpEasy.copy(interval = easyInterval)
-            }
-
-            Review -> {
-                again = card.nextCard(Relearning, Again, 5.minutes, true)
-
-                val tmpHard = card.nextCard(Review, Hard, incrementLapses = true)
-                val tmpGood = card.nextCard(Review, Good, incrementLapses = true)
-                val tmpEasy = card.nextCard(Review, Easy, incrementLapses = true)
-
-                val hardInterval = minOf(tmpHard.interval, tmpGood.interval)
-                val goodInterval = maxOf(tmpGood.interval, hardInterval + 1.days)
-                val easyInterval = maxOf(tmpEasy.interval, goodInterval + 1.days)
-
-                hard = tmpHard.copy(interval = hardInterval)
-                good = tmpGood.copy(interval = goodInterval)
-                easy = tmpEasy.copy(interval = easyInterval)
-            }
-        }
-
-        return FsrsAnswers(again, hard, good, easy)
+        return FsrsAnswers(
+            again = answer(Again, againInterval),
+            hard = answer(Hard, hardInterval),
+            good = answer(Good, goodInterval),
+            easy = answer(Easy, easyInterval)
+        )
     }
 
+    /** Rounds sub-day intervals to whole minutes and longer ones to whole days. */
+    private fun toInterval(days: Double): Duration {
+        return when {
+            days.isNaN() -> maxInterval
+            days < 1.0 -> {
+                val minutes = (days * 24 * 60).roundToLong()
+                minutes.minutes.coerceAtLeast(1.minutes)
+            }
+
+            else -> days.roundToLong().days.coerceIn(1.days, maxInterval)
+        }
+    }
+
+    /**
+     * Makes sure that a better answer never gives a shorter interval; once intervals reach
+     * whole days, a better answer gives at least one more day.
+     */
+    private fun Duration.atLeastAfter(other: Duration): Duration {
+        return when {
+            other >= 1.days -> maxOf(this, (other + 1.days).coerceAtMost(maxInterval))
+            else -> maxOf(this, other)
+        }
+    }
+
+}
+
+/** Retrievability of a reviewed card at [time] according to FSRS-7. */
+fun Fsrs7.retrievability(params: FsrsCardParams.Existing, time: Instant): Double {
+    val elapsedDays = (time - params.reviewTime).toDouble(DurationUnit.DAYS)
+    return retrievability(params.memoryState, elapsedDays)
 }

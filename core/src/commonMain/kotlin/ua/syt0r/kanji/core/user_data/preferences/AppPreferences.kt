@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalTime
 import ua.syt0r.kanji.core.suspended_property.BooleanSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.EnumSuspendedPropertyType.Companion.enumSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.InstantSuspendedPropertyType
+import ua.syt0r.kanji.core.suspended_property.IntSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.LocalTimeSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.StringSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.SuspendedProperty
@@ -215,6 +216,13 @@ class AppPreferences(
         type = LocalTimeSuspendedPropertyType,
         key = "daily_reset_time",
         initialValue = { LocalTime(0, 0) },
+        affectSync = true
+    )
+
+    override val desiredRetentionPercent: SuspendedProperty<Int> = createProperty(
+        type = IntSuspendedPropertyType,
+        key = "fsrs_desired_retention_percent",
+        initialValue = { 90 },
         affectSync = true
     )
 

@@ -1,4 +1,4 @@
-PRAGMA user_version = 12;
+PRAGMA user_version = 13;
 
 getLastInsertRowId:
 SELECT last_insert_rowid();
@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS fsrs_card (
     repeats INTEGER NOT NULL,
     last_review INTEGER NOT NULL,
     interval INTEGER NOT NULL,
+    short_stability REAL NOT NULL DEFAULT -1,
     PRIMARY KEY(key, practice_type)
 );
 
@@ -162,6 +163,11 @@ getReviewHistory:
 SELECT key, practice_type, timestamp, duration, grade, mistakes, deck_id
 FROM review_history
 WHERE timestamp > :start AND timestamp < :end;
+
+getAllReviewHistory:
+SELECT key, practice_type, timestamp, duration, grade, mistakes, deck_id
+FROM review_history
+ORDER BY timestamp;
 
 migrateDeckForReviewHistory:
 UPDATE OR REPLACE review_history

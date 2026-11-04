@@ -1,0 +1,5 @@
+PRAGMA user_version = 13;
+
+-- FSRS-7 keeps a separate short-term stability. -1 marks rows that still need their memory
+-- state recalculated from review history (done in UserDataDatabaseMigrationAfter12).
+ALTER TABLE fsrs_card ADD COLUMN short_stability REAL NOT NULL DEFAULT -1;

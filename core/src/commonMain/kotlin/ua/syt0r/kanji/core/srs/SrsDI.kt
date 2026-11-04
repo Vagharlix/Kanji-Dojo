@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.core.module.Module
 import ua.syt0r.kanji.core.srs.fsrs.DefaultFsrsScheduler
-import ua.syt0r.kanji.core.srs.fsrs.Fsrs5
+import ua.syt0r.kanji.core.srs.fsrs.Fsrs7
 import ua.syt0r.kanji.core.srs.fsrs.FsrsScheduler
 import ua.syt0r.kanji.core.srs.use_case.DefaultGetSrsStatusUseCase
 import ua.syt0r.kanji.core.srs.use_case.GetSrsStatusUseCase
@@ -38,8 +38,11 @@ fun Module.applySrsDefinitions() {
         DefaultSrsCardRepository(fsrsCardRepository = get())
     }
 
-    factory<SrsScheduler> { DefaultSrsScheduler(fsrsScheduler = get()) }
-    factory<FsrsScheduler> { DefaultFsrsScheduler(Fsrs5()) }
+    factory<SrsScheduler> {
+        DefaultSrsScheduler(fsrsScheduler = get(), appPreferences = get())
+    }
+    single<Fsrs7> { Fsrs7() }
+    factory<FsrsScheduler> { DefaultFsrsScheduler(fsrs = get()) }
 
     single<VocabSrsManager> {
         DefaultVocabSrsManager(

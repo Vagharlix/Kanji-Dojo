@@ -15,6 +15,8 @@ import ua.syt0r.kanji.presentation.common.CommonDateTimeFormat
 import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
 import ua.syt0r.kanji.presentation.common.withClickableUrl
 import ua.syt0r.kanji.presentation.screen.main.screen.feedback.FeedbackScreen
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.RetentionPeriod
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StabilityBucket
 import kotlin.time.Duration
 
 object EnglishStrings : Strings {
@@ -226,6 +228,74 @@ object EnglishStatsStrings : StatsStrings {
     override val formattedDuration: (Duration) -> String = { formatDuration(it) }
     override val uniqueLettersReviewed: String = "Unique letters reviewed"
     override val uniqueWordsReviewed: String = "Unique words reviewed"
+
+    override val heatmapDailyAverage: (Int) -> String = { "Daily average: $it reviews" }
+    override val heatmapDaysLearned: (String) -> String = { "Days learned: $it" }
+    override val heatmapLongestStreak: (Int) -> String = { "Longest streak: $it days" }
+    override val heatmapCurrentStreak: (Int) -> String = { "Current streak: $it days" }
+    override val heatmapSelectedDay: (LocalDate, Int) -> String = { date, reviews ->
+        "${months[date.monthNumber - 1]} ${date.dayOfMonth}, ${date.year}: $reviews reviews"
+    }
+    override val heatmapHint: String = "Tap a day to see its reviews"
+    override val heatmapLess: String = "Less"
+    override val heatmapMore: String = "More"
+
+    override val fsrsTitle: String = "Memory (FSRS-7)"
+    override val fsrsDesiredRetention: (String) -> String = { "Desired retention: $it" }
+    override val fsrsFilterAll: String = "All"
+    override val fsrsFilterLetters: String = "Letters"
+    override val fsrsFilterWords: String = "Words"
+    override val fsrsNoData: String = "Not enough reviews yet"
+    override val fsrsAverageRetrievability: String = "Average retrievability"
+    override val fsrsEstimatedKnown: String = "Estimated items known"
+    override val fsrsAverageStability: String = "Average stability"
+    override val fsrsAverageDifficulty: String = "Average difficulty"
+    override val fsrsFormattedDays: (Double) -> String = { formatStatsDays(it, "d", "mo", "y") }
+    override val fsrsCardsTitle: String = "Card states"
+    override val fsrsLearning: String = "Learning"
+    override val fsrsYoung: String = "Young"
+    override val fsrsMature: String = "Mature"
+    override val fsrsTotal: String = "Total"
+    override val fsrsTrueRetentionTitle: String = "True retention"
+    override val fsrsTrueRetentionHint: String =
+        "Pass rate of reviews done on a later day than the previous review (Hard, Good and Easy count as passed). Young: previous review less than 21 days earlier. Predicted: average recall probability FSRS-7 expected for the same reviews."
+    override val fsrsPredicted: String = "Predicted"
+    override val fsrsPeriod: (RetentionPeriod) -> String = {
+        when (it) {
+            RetentionPeriod.Today -> "Today"
+            RetentionPeriod.Yesterday -> "Yesterday"
+            RetentionPeriod.Week -> "Last 7 days"
+            RetentionPeriod.Month -> "Last 30 days"
+            RetentionPeriod.Year -> "Last year"
+            RetentionPeriod.AllTime -> "All time"
+        }
+    }
+    override val fsrsForecastTitle: String = "Review forecast"
+    override val fsrsForecastSummary: (Int, Int, String) -> String = { overdue, tomorrow, average ->
+        "Overdue: $overdue · Tomorrow: $tomorrow · Daily average: $average"
+    }
+    override val fsrsForecastDay: (Int) -> String = {
+        when (it) {
+            0 -> "Today"
+            1 -> "Tomorrow"
+            else -> "In $it days"
+        }
+    }
+    override val fsrsStabilityTitle: String = "Stability"
+    override val fsrsStabilityBucket: (StabilityBucket) -> String = {
+        when (it) {
+            StabilityBucket.LessThanDay -> "<1d"
+            StabilityBucket.Week -> "1-7d"
+            StabilityBucket.ThreeWeeks -> "1-3w"
+            StabilityBucket.ThreeMonths -> "3w-3mo"
+            StabilityBucket.Year -> "3mo-1y"
+            StabilityBucket.MoreThanYear -> ">1y"
+        }
+    }
+    override val fsrsDifficultyTitle: String = "Difficulty"
+    override val fsrsRetrievabilityTitle: String = "Retrievability"
+    override val fsrsChartSelection: (String, Int) -> String = { label, count -> "$label: $count cards" }
+    override val fsrsChartHint: String = "Tap a bar for details"
 }
 
 object EnglishSearchStrings : SearchStrings {

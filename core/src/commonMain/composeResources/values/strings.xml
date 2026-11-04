@@ -39,6 +39,9 @@
     <string name="social_youtube">YouTube</string>
 
     <string name="setting_daily_reset_time_item">Daily Reset Time</string>
+    <string name="setting_desired_retention_item">Desired Retention (FSRS-7)</string>
+    <string name="setting_desired_retention_value">%1$d% chance to remember when a card is due</string>
+    <string name="setting_desired_retention_description">The probability of recalling a card that FSRS-7 aims for when scheduling reviews. Higher values mean shorter intervals and more reviews per day. 90% is a good default.</string>
 
     <string name="text_analysis_title">Text Analysis</string>
     <string name="text_analysis_history_title">History</string>
@@ -104,6 +107,7 @@
     <string name="migration_dialog_loading_data">Loading data...</string>
     <string name="migration_dialog_migrating_vocab_cards">Updating vocab cards...</string>
     <string name="migration_dialog_saving_changes">Applying changes...</string>
+    <string name="migration_dialog_fsrs7_recalculating">Recalculating memory states (FSRS-7)...</string>
 
     <string name="vocab_card_title">Vocab Card</string>
     <string name="vocab_card_kanji">Kanji Reading</string>

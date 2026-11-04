@@ -76,5 +76,9 @@
     <string name="migration_dialog_loading_data">データを読み込み中...</string>
     <string name="migration_dialog_migrating_vocab_cards">単語カードを更新中...</string>
     <string name="migration_dialog_saving_changes">変更を適用中...</string>
+    <string name="migration_dialog_fsrs7_recalculating">記憶状態を再計算しています (FSRS-7)...</string>
 
+    <string name="setting_desired_retention_item">目標保持率 (FSRS-7)</string>
+    <string name="setting_desired_retention_value">復習時に思い出せる確率 %1$d%</string>
+    <string name="setting_desired_retention_description">FSRS-7が復習をスケジュールする際に目標とする想起確率です。値を高くすると間隔が短くなり、1日の復習数が増えます。おすすめは90%です。</string>
 </resources>

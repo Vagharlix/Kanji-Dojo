@@ -61,7 +61,8 @@ class SqlDelightFsrsCardRepository private constructor(
             lapses = card.lapses.toLong(),
             repeats = card.repeats.toLong(),
             last_review = card.lastReview!!.toEpochMilliseconds(),
-            interval = card.interval.inWholeMilliseconds
+            interval = card.interval.inWholeMilliseconds,
+            short_stability = card.params.shortStability
         )
     }
 
@@ -85,6 +86,8 @@ class SqlDelightFsrsCardRepository private constructor(
             params = FsrsCardParams.Existing(
                 difficulty = difficulty,
                 stability = stability,
+                // Negative value means the short-term stability was never calculated
+                shortStability = short_stability.takeIf { it > 0 } ?: stability,
                 reviewTime = Instant.fromEpochMilliseconds(last_review)
             ),
             status = dbValueToSrcCardStatus.getValue(status.toInt()),

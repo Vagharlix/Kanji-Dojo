@@ -27,6 +27,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,13 +39,16 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
+import ua.syt0r.kanji.presentation.common.resources.string.formatPercent
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
 import ua.syt0r.kanji.presentation.common.ui.AutoSizeText
 import ua.syt0r.kanji.presentation.common.ui.FancyLoading
 import ua.syt0r.kanji.presentation.common.ui.LocalOrientation
 import ua.syt0r.kanji.presentation.common.ui.Orientation
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StatsScreenContract.ScreenState
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.StatsHeatmapLegend
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.StatsMonthCalendar
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.fsrsStatsItems
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.StatsYearCalendar
 
 @Composable
@@ -197,19 +204,43 @@ private fun LoadedState(screenState: ScreenState.Loaded) {
 
 
         item(span = StaggeredGridItemSpan.FullLine) {
+            val heatmap = statsData.heatmapSummary
+            var selectedDate by remember(selectedYear) { mutableStateOf<LocalDate?>(null) }
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 StatsYearCalendar(
                     today = statsData.todayStats.date,
-                    stats = statsData.yearStats
+                    stats = statsData.yearStats,
+                    dailyAverage = heatmap.dailyAverage,
+                    selectedDate = selectedDate,
+                    onDateClick = { selectedDate = it }
                 )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = selectedDate
+                            ?.let { date ->
+                                strings.heatmapSelectedDay(
+                                    date,
+                                    yearStats.statsState.value.dateToReviewsMap[date]?.size ?: 0
+                                )
+                            }
+                            ?: strings.heatmapHint,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatsHeatmapLegend(strings.heatmapLess, strings.heatmapMore)
+                }
                 Text(
                     text = strings.yearDaysPracticedLabel(
                         yearStats.statsState.value.dateToReviewsMap.size,
                         yearDaysCount
                     )
                 )
+                Text(strings.heatmapDailyAverage(heatmap.dailyAverage))
+                Text(strings.heatmapDaysLearned(formatPercent(heatmap.daysLearnedRatio, 0)))
+                Text(strings.heatmapLongestStreak(heatmap.longestStreak))
+                Text(strings.heatmapCurrentStreak(heatmap.currentStreak))
             }
         }
 
@@ -243,6 +274,8 @@ private fun LoadedState(screenState: ScreenState.Loaded) {
                 subtitle = strings.uniqueWordsReviewed
             )
         }
+
+        fsrsStatsItems(statsData, strings)
 
         item(span = StaggeredGridItemSpan.FullLine) {
             Spacer(Modifier.height(20.dp))
