@@ -55,7 +55,7 @@ interface PreferencesContract {
 
         val dailyResetTime: SuspendedProperty<LocalTime>
 
-        /** FSRS desired retention, in percent (70..99) */
+        /** FSRS desired retention, in percent (85..97) */
         val desiredRetentionPercent: SuspendedProperty<Int>
     }
 

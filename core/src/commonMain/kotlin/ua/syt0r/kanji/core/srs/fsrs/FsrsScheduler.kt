@@ -16,8 +16,10 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
 
 const val DEFAULT_DESIRED_RETENTION = 0.9
-const val MIN_DESIRED_RETENTION = 0.70
-const val MAX_DESIRED_RETENTION = 0.99
+// With the default FSRS-7 parameters intervals explode below ~85% (a new card answered
+// Good would wait months) and collapse to seconds above ~97%, so the range is kept narrow
+const val MIN_DESIRED_RETENTION = 0.85
+const val MAX_DESIRED_RETENTION = 0.97
 
 interface FsrsScheduler {
 
