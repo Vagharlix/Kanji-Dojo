@@ -54,6 +54,7 @@ interface FsrsCardRepository : ObservableRepository {
     suspend fun get(key: SrsCardKey): FsrsCard?
     suspend fun getAll(): Map<SrsCardKey, FsrsCard>
     suspend fun update(key: SrsCardKey, card: FsrsCard)
+    suspend fun updateAll(cards: Map<SrsCardKey, FsrsCard>)
 }
 
 interface ReviewHistoryRepository {

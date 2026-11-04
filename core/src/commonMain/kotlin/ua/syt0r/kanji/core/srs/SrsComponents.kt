@@ -74,5 +74,7 @@ data class SrsAnswers(
     val again: SrsAnswer,
     val hard: SrsAnswer,
     val good: SrsAnswer,
-    val easy: SrsAnswer
+    val easy: SrsAnswer,
+    /** Only Again and Good should be offered */
+    val passFailMode: Boolean = false
 )

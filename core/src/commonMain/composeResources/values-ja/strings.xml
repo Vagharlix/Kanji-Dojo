@@ -81,4 +81,27 @@
     <string name="setting_desired_retention_item">目標保持率 (FSRS-7)</string>
     <string name="setting_desired_retention_value">復習時に思い出せる確率 %1$d%</string>
     <string name="setting_desired_retention_description">FSRS-7が復習をスケジュールする際に目標とする想起確率です。値を高くすると間隔が短くなり、1日の復習数が増えます。おすすめは90%です。</string>
+    <string name="setting_desired_retention_low_warning">85%未満では、特にデフォルトのパラメータで間隔が極端に長くなることがあります。</string>
+    <string name="setting_desired_retention_high_warning">97%を超えると間隔がとても短くなり、復習数が急増します。</string>
+    <string name="setting_fsrs_parameters_item">FSRS-7 パラメータ</string>
+    <string name="setting_fsrs_parameters_default">デフォルトのパラメータ</string>
+    <string name="setting_fsrs_parameters_custom">カスタムパラメータ</string>
+    <string name="setting_fsrs_parameters_description">FSRS-7モデルの34個の重みです。「最適化」はあなたの復習履歴に合わせて調整します。数百回の復習があれば、通常スケジュールがより正確になります。</string>
+    <string name="setting_fsrs_parameters_invalid">カンマ区切りで%1$d個の数値を入力してください</string>
+    <string name="setting_fsrs_parameters_optimize">最適化</string>
+    <string name="setting_fsrs_parameters_reset">デフォルトに戻す</string>
+    <string name="setting_fsrs_parameters_optimizing">復習履歴で最適化しています...</string>
+    <string name="setting_fsrs_parameters_not_enough_data">最適化には復習が足りません: %2$d回中%1$d回</string>
+    <string name="setting_fsrs_parameters_optimized">最適化したパラメータの方が復習履歴によく合います。保存すると使用されます。</string>
+    <string name="setting_fsrs_parameters_not_improved">現在のパラメータの方がよく合っているため、変更しませんでした。</string>
+    <string name="setting_fsrs_parameters_metrics">復習数: %1$d\n対数損失: %2$s → %3$s\nRMSE (ビン): %4$s% → %5$s%</string>
+    <string name="setting_fsrs_parameters_reschedule">カードを再スケジュールする（期日を再計算）</string>
+    <string name="setting_fsrs_parameters_save">保存</string>
+    <string name="setting_fsrs_parameters_applying">記憶状態を再計算しています...</string>
+    <string name="setting_fsrs_max_interval_item">最大間隔</string>
+    <string name="setting_fsrs_max_interval_value">%1$d日</string>
+    <string name="setting_fsrs_max_interval_description">復習の最大間隔（日数）です。各カードの次回の復習から適用されます。</string>
+    <string name="setting_fsrs_max_interval_invalid">%1$d〜%2$dの日数を入力してください</string>
+    <string name="setting_pass_fail_item">合格/不合格ボタン</string>
+    <string name="setting_pass_fail_description">採点時に「もう一度」と「正解」だけを表示します</string>
 </resources>

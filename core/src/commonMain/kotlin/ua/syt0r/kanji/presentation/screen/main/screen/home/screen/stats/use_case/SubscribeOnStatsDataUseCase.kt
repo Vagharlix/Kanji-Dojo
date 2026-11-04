@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
@@ -25,7 +26,7 @@ import ua.syt0r.kanji.core.refreshableDataFlow
 import ua.syt0r.kanji.core.srs.LetterPracticeType
 import ua.syt0r.kanji.core.srs.LetterSrsManager
 import ua.syt0r.kanji.core.srs.SrsCardRepository
-import ua.syt0r.kanji.core.srs.desiredRetention
+import ua.syt0r.kanji.core.srs.fsrs.FsrsConfigurationRepository
 import ua.syt0r.kanji.core.srs.VocabPracticeType
 import ua.syt0r.kanji.core.time.TimeUtils
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
@@ -38,7 +39,6 @@ import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.Refresha
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StatsData
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.TimePeriodStats
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.TotalStats
-import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.YearMonth
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -51,7 +51,7 @@ class DefaultSubscribeOnStatsDataUseCase(
     private val letterSrsManager: LetterSrsManager,
     private val reviewHistoryRepository: ReviewHistoryRepository,
     private val srsCardRepository: SrsCardRepository,
-    private val fsrsStatsCalculator: FsrsStatsCalculator,
+    private val fsrsConfigurationRepository: FsrsConfigurationRepository,
     private val timeUtils: TimeUtils,
     private val appPreferences: PreferencesContract.AppPreferences
 ) : SubscribeOnStatsDataUseCase {
@@ -62,7 +62,10 @@ class DefaultSubscribeOnStatsDataUseCase(
         lifecycleState: StateFlow<LifecycleState>
     ): Flow<RefreshableData<StatsData>> {
         return refreshableDataFlow(
-            dataChangeFlow = letterSrsManager.dataChangeFlow,
+            dataChangeFlow = merge(
+                letterSrsManager.dataChangeFlow,
+                fsrsConfigurationRepository.changes
+            ),
             lifecycleState = lifecycleState,
             valueProvider = { getStats(this) }
         )
@@ -88,7 +91,8 @@ class DefaultSubscribeOnStatsDataUseCase(
 
         val allReviews = reviewHistoryRepository.getAllReviews()
         val cards = srsCardRepository.getAll().mapValues { it.value.fsrsCard }
-        val desiredRetention = appPreferences.desiredRetention()
+        val fsrsConfiguration = fsrsConfigurationRepository.get()
+        val fsrsStatsCalculator = FsrsStatsCalculator(fsrsConfiguration.fsrs)
         val now = timeUtils.now()
 
         val (heatmapSummary, fsrsStats) = withContext(Dispatchers.Default) {
@@ -100,18 +104,13 @@ class DefaultSubscribeOnStatsDataUseCase(
                             now = now,
                             today = today,
                             toSrsDate = toSrsDate,
-                            desiredRetention = desiredRetention
+                            desiredRetention = fsrsConfiguration.desiredRetention
                         )
                     )
         }
 
         return StatsData(
             todayStats = getDayStats(today, resetTime),
-            monthStats = refreshableStats(
-                coroutineScope = coroutineScope,
-                initialTimePeriod = YearMonth(today.year, today.month),
-                statsProvider = { getMonthStats(it, resetTime) }
-            ),
             yearStats = refreshableStats(
                 coroutineScope = coroutineScope,
                 initialTimePeriod = today.year,
@@ -170,15 +169,6 @@ class DefaultSubscribeOnStatsDataUseCase(
             isLoading = isLoading,
             statsState = statsState
         )
-    }
-
-    private suspend fun getMonthStats(
-        month: YearMonth,
-        resetTime: LocalTime
-    ): TimePeriodStats {
-        val monthStart = LocalDate(month.year, month.month, 1)
-        val monthEnd = monthStart.plus(1, DateTimeUnit.MONTH)
-        return getStatsForPeriod(monthStart, monthEnd, resetTime)
     }
 
     private suspend fun getYearStats(

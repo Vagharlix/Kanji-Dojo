@@ -20,7 +20,7 @@ val statsScreenModule = module {
             letterSrsManager = get(),
             reviewHistoryRepository = get(),
             srsCardRepository = get(),
-            fsrsStatsCalculator = FsrsStatsCalculator(fsrs = get()),
+            fsrsConfigurationRepository = get(),
             timeUtils = get(),
             appPreferences = get()
         )

@@ -56,7 +56,9 @@ data class PracticeAnswers(
     val again: PracticeAnswer,
     val hard: PracticeAnswer,
     val good: PracticeAnswer,
-    val easy: PracticeAnswer
+    val easy: PracticeAnswer,
+    /** Only Again (fail) and Good (pass) are shown */
+    val passFailMode: Boolean = false
 )
 
 data class PracticeAnswer(
@@ -100,12 +102,20 @@ fun PracticeAnswerButtonsRow(
             .onKeyEvent { event ->
                 if (event.type != KeyEventType.KeyUp) return@onKeyEvent false
 
-                val srsCard = when (event.key) {
-                    Key.One -> answers.again
-                    Key.Two -> answers.hard
-                    Key.Three -> answers.good
-                    Key.Four -> answers.easy
-                    else -> null
+                val srsCard = when {
+                    answers.passFailMode -> when (event.key) {
+                        Key.One -> answers.again
+                        Key.Two, Key.Three, Key.Spacebar -> answers.good
+                        else -> null
+                    }
+
+                    else -> when (event.key) {
+                        Key.One -> answers.again
+                        Key.Two -> answers.hard
+                        Key.Three -> answers.good
+                        Key.Four -> answers.easy
+                        else -> null
+                    }
                 }
 
                 srsCard?.let { onClick(it); true } ?: false
@@ -131,24 +141,28 @@ fun PracticeAnswerButtonsRow(
                 onClick = { onClick(answers.again) },
                 color = MaterialTheme.colorScheme.error
             )
-            SrsAnswerButton(
-                label = resolveString { commonPractice.hardButton },
-                interval = answers.hard.srsAnswer.card.interval,
-                onClick = { onClick(answers.hard) },
-                color = MaterialTheme.extraColorScheme.due
-            )
+            if (!answers.passFailMode) {
+                SrsAnswerButton(
+                    label = resolveString { commonPractice.hardButton },
+                    interval = answers.hard.srsAnswer.card.interval,
+                    onClick = { onClick(answers.hard) },
+                    color = MaterialTheme.extraColorScheme.due
+                )
+            }
             SrsAnswerButton(
                 label = resolveString { commonPractice.goodButton },
                 interval = answers.good.srsAnswer.card.interval,
                 onClick = { onClick(answers.good) },
                 color = MaterialTheme.extraColorScheme.success
             )
-            SrsAnswerButton(
-                label = resolveString { commonPractice.easyButton },
-                interval = answers.easy.srsAnswer.card.interval,
-                onClick = { onClick(answers.easy) },
-                color = MaterialTheme.extraColorScheme.new
-            )
+            if (!answers.passFailMode) {
+                SrsAnswerButton(
+                    label = resolveString { commonPractice.easyButton },
+                    interval = answers.easy.srsAnswer.card.interval,
+                    onClick = { onClick(answers.easy) },
+                    color = MaterialTheme.extraColorScheme.new
+                )
+            }
         }
     }
 

@@ -55,8 +55,17 @@ interface PreferencesContract {
 
         val dailyResetTime: SuspendedProperty<LocalTime>
 
-        /** FSRS desired retention, in percent (85..97) */
+        /** FSRS desired retention, in percent (70..99) */
         val desiredRetentionPercent: SuspendedProperty<Int>
+
+        /** Custom FSRS-7 parameters, comma separated. Empty means default parameters */
+        val fsrsParameters: SuspendedProperty<String>
+
+        /** Maximum review interval in days */
+        val fsrsMaxIntervalDays: SuspendedProperty<Int>
+
+        /** Show only Again and Good answer buttons */
+        val passFailMode: SuspendedProperty<Boolean>
     }
 
     interface PracticePreferences {

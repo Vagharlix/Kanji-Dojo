@@ -3,14 +3,12 @@ package ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.Month
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryItem
 import kotlin.time.Duration
 
 
 data class StatsData(
     val todayStats: DayStats,
-    val monthStats: RefreshableStats<YearMonth, TimePeriodStats>,
     val yearStats: RefreshableStats<Int, TimePeriodStats>,
     val totalStats: TotalStats,
     val heatmapSummary: HeatmapSummary,
@@ -23,17 +21,6 @@ data class DayStats(
     val reviews: Int,
     val timeSpent: Duration
 )
-
-data class YearMonth(
-    val monthStart: LocalDate
-) {
-
-    val year = monthStart.year
-    val month = monthStart.month
-
-    constructor(year: Int, month: Month) : this(LocalDate(year, month, 1))
-
-}
 
 data class RefreshableStats<TimePeriod, StatsData>(
     val currentTimePeriod: TimePeriod,

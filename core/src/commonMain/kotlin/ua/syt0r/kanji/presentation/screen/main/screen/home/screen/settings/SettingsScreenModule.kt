@@ -7,6 +7,9 @@ import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.ThemeSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DailyResetTimeSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DesiredRetentionSettingItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.FsrsParametersSettingItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.MaxIntervalSettingItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.PassFailSettingItem
 
 val defaultSettingItemsQualifier = qualifier("default_setting_items")
 val settingItemsQualifier = qualifier("setting_items")
@@ -26,7 +29,14 @@ val settingsScreenModule = module {
             ThemeSettingItem(themeManager = get()),
             DefaultHomeTabSettingItem(appPreferences = get()),
             DailyResetTimeSettingItem(appPreferences = get()),
-            DesiredRetentionSettingItem(appPreferences = get())
+            DesiredRetentionSettingItem(appPreferences = get()),
+            FsrsParametersSettingItem(
+                appPreferences = get(),
+                fsrsOptimizer = get(),
+                applyFsrsParametersUseCase = get()
+            ),
+            MaxIntervalSettingItem(appPreferences = get()),
+            PassFailSettingItem(appPreferences = get())
         )
     }
 

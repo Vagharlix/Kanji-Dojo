@@ -30,12 +30,16 @@ import org.jetbrains.compose.resources.stringResource
 import ua.syt0r.kanji.Res
 import ua.syt0r.kanji.core.srs.fsrs.MAX_DESIRED_RETENTION
 import ua.syt0r.kanji.core.srs.fsrs.MIN_DESIRED_RETENTION
+import ua.syt0r.kanji.core.srs.fsrs.RECOMMENDED_MAX_DESIRED_RETENTION
+import ua.syt0r.kanji.core.srs.fsrs.RECOMMENDED_MIN_DESIRED_RETENTION
 import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import ua.syt0r.kanji.presentation.common.MultiplatformDialog
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
 import ua.syt0r.kanji.presentation.screen.main.MainNavigationState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.SettingsScreenContract
 import ua.syt0r.kanji.setting_desired_retention_description
+import ua.syt0r.kanji.setting_desired_retention_high_warning
+import ua.syt0r.kanji.setting_desired_retention_low_warning
 import ua.syt0r.kanji.setting_desired_retention_item
 import ua.syt0r.kanji.setting_desired_retention_value
 import kotlin.math.roundToInt
@@ -108,6 +112,23 @@ class DesiredRetentionSettingItem(
                             text = stringResource(Res.string.setting_desired_retention_description),
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        val selected = sliderValue.roundToInt() / 100.0
+                        val warning = when {
+                            selected < RECOMMENDED_MIN_DESIRED_RETENTION ->
+                                stringResource(Res.string.setting_desired_retention_low_warning)
+
+                            selected > RECOMMENDED_MAX_DESIRED_RETENTION ->
+                                stringResource(Res.string.setting_desired_retention_high_warning)
+
+                            else -> null
+                        }
+                        if (warning != null) {
+                            Text(
+                                text = warning,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 },
                 buttons = {

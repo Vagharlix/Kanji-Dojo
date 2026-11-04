@@ -226,4 +226,25 @@ class AppPreferences(
         affectSync = true
     )
 
+    override val fsrsParameters: SuspendedProperty<String> = createProperty(
+        type = StringSuspendedPropertyType,
+        key = "fsrs_parameters",
+        initialValue = { "" },
+        affectSync = true
+    )
+
+    override val fsrsMaxIntervalDays: SuspendedProperty<Int> = createProperty(
+        type = IntSuspendedPropertyType,
+        key = "fsrs_max_interval_days",
+        initialValue = { 36500 },
+        affectSync = true
+    )
+
+    override val passFailMode: SuspendedProperty<Boolean> = createProperty(
+        type = BooleanSuspendedPropertyType,
+        key = "pass_fail_mode",
+        initialValue = { false },
+        affectSync = true
+    )
+
 }

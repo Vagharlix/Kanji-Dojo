@@ -7,6 +7,7 @@ interface SrsCardRepository : ObservableRepository {
     suspend fun get(key: SrsCardKey): SrsCard?
     suspend fun getAll(): Map<SrsCardKey, SrsCard>
     suspend fun update(key: SrsCardKey, card: SrsCard)
+    suspend fun updateAll(cards: Map<SrsCardKey, SrsCard>)
 }
 
 class DefaultSrsCardRepository(
@@ -24,6 +25,10 @@ class DefaultSrsCardRepository(
 
     override suspend fun update(key: SrsCardKey, card: SrsCard) {
         fsrsCardRepository.update(key, card.fsrsCard)
+    }
+
+    override suspend fun updateAll(cards: Map<SrsCardKey, SrsCard>) {
+        fsrsCardRepository.updateAll(cards.mapValues { it.value.fsrsCard })
     }
 
 }

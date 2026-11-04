@@ -46,6 +46,12 @@ class SqlDelightFsrsCardRepository private constructor(
         writeTransaction { upsertFsrsCard(covert(key, card)) }
     }
 
+    override suspend fun updateAll(cards: Map<SrsCardKey, FsrsCard>) {
+        val repoData = getRepoData()
+        repoData.cardsMap.putAll(cards)
+        writeTransaction { cards.forEach { (key, card) -> upsertFsrsCard(covert(key, card)) } }
+    }
+
     private suspend fun getRepoData(): RepoData {
         return cachedUserDataState.data.value.await()
     }

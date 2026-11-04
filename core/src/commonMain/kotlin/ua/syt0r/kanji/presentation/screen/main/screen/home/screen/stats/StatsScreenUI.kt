@@ -47,7 +47,6 @@ import ua.syt0r.kanji.presentation.common.ui.LocalOrientation
 import ua.syt0r.kanji.presentation.common.ui.Orientation
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.StatsScreenContract.ScreenState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.StatsHeatmapLegend
-import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.StatsMonthCalendar
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.fsrsStatsItems
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.ui.StatsYearCalendar
 
@@ -113,58 +112,6 @@ private fun LoadedState(screenState: ScreenState.Loaded) {
             InfoCard(
                 title = statsData.todayStats.reviews.toString(),
                 subtitle = strings.reviewsCountTitle
-            )
-        }
-
-        val monthStats = screenState.stats.monthStats
-        val selectedMonth = monthStats.selectedTimePeriodState.value
-
-        item(
-            span = StaggeredGridItemSpan.FullLine
-        ) {
-            Row(
-                modifier = Modifier.padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val text = when {
-                    monthStats.currentTimePeriod == selectedMonth -> {
-                        strings.monthTitle
-                    }
-
-                    else -> {
-                        strings.monthLabel(selectedMonth.monthStart)
-                    }
-                }
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(
-                    onClick = {
-                        val previousMonthStart = selectedMonth.monthStart
-                            .minus(1, DateTimeUnit.MONTH)
-                        monthStats.selectedTimePeriodState.value = YearMonth(previousMonthStart)
-                    }
-                ) {
-                    Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, null)
-                }
-                IconButton(onClick = {
-                    val nextMonthStart = selectedMonth.monthStart
-                        .plus(1, DateTimeUnit.MONTH)
-                    monthStats.selectedTimePeriodState.value = YearMonth(nextMonthStart)
-                }) {
-                    Icon(Icons.AutoMirrored.Default.KeyboardArrowRight, null)
-                }
-            }
-        }
-
-
-        item(span = StaggeredGridItemSpan.FullLine) {
-            StatsMonthCalendar(
-                today = statsData.todayStats.date,
-                monthStats = monthStats
             )
         }
 

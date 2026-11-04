@@ -135,7 +135,8 @@ abstract class BasePracticeQueue<State, Descriptor, QueueItem, SummaryItem>(
             again = PracticeAnswer(answers.again),
             hard = PracticeAnswer(answers.hard),
             good = PracticeAnswer(answers.good),
-            easy = PracticeAnswer(answers.easy)
+            easy = PracticeAnswer(answers.easy),
+            passFailMode = answers.passFailMode
         )
     }
 
