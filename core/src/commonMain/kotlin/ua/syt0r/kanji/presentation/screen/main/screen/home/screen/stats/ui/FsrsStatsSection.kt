@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import ua.syt0r.kanji.presentation.common.resources.string.StatsStrings
 import ua.syt0r.kanji.presentation.common.resources.string.formatDecimal
 import ua.syt0r.kanji.presentation.common.resources.string.formatPercent
+import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
 import ua.syt0r.kanji.presentation.common.ui.AutoSizeText
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.FsrsStats
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.PassFail
@@ -243,9 +244,9 @@ private fun ChartCard(
 @Composable
 private fun CardCountsCard(stats: FsrsStats, strings: StatsStrings) {
     val counts = stats.cardCounts
-    val learningColor = MaterialTheme.colorScheme.tertiary
-    val youngColor = MaterialTheme.colorScheme.secondary
-    val matureColor = MaterialTheme.colorScheme.primary
+    val learningColor = MaterialTheme.extraColorScheme.due
+    val youngColor = MaterialTheme.extraColorScheme.new
+    val matureColor = MaterialTheme.extraColorScheme.success
 
     ChartCard(title = strings.fsrsCardsTitle) {
         Row(
@@ -346,11 +347,13 @@ private fun RetentionTableRow(cells: List<String>, isHeader: Boolean) {
         cells.forEachIndexed { index, text ->
             Text(
                 text = text,
-                style = if (isHeader) MaterialTheme.typography.labelMedium
+                style = if (isHeader) MaterialTheme.typography.labelSmall
                 else MaterialTheme.typography.bodySmall,
+                maxLines = if (isHeader) 1 else 2,
+                softWrap = !isHeader,
                 fontWeight = if (isHeader || index == 0) FontWeight.Bold else FontWeight.Normal,
                 textAlign = if (index == 0) TextAlign.Start else TextAlign.Center,
-                modifier = Modifier.weight(if (index == 0) 1.4f else 1f)
+                modifier = Modifier.weight(if (index == 0) 1.3f else 1f)
             )
         }
     }

@@ -10,6 +10,7 @@ import ua.syt0r.kanji.core.srs.SrsCardKey
 import ua.syt0r.kanji.core.srs.fsrs.FsrsCardParams
 import ua.syt0r.kanji.core.srs.fsrs.FsrsHistoryReplay
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewLog
+import ua.syt0r.kanji.core.user_data.database.DatabaseMigrationState
 import ua.syt0r.kanji.core.user_data.database.DatabaseMigrationState.Running.Progress
 import ua.syt0r.kanji.core.user_data.database.UserDataDatabaseContract
 import ua.syt0r.kanji.core.user_data.database.updateState
@@ -121,6 +122,7 @@ class UserDataDatabaseMigrationAfter12(
         )
 
         Logger.d("FSRS-7 migration: recalculated ${cardsToUpdate.size} of ${existingCards.size} cards")
+        migrationObservable.updateState(DatabaseMigrationState.Idle)
     }
 
 }
