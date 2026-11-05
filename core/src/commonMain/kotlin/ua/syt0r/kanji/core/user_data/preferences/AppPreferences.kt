@@ -247,4 +247,18 @@ class AppPreferences(
         affectSync = true
     )
 
+    override val fsrsLearningSteps: SuspendedProperty<String> = createProperty(
+        type = StringSuspendedPropertyType,
+        key = "fsrs_learning_steps",
+        initialValue = { "" },
+        affectSync = true
+    )
+
+    override val fsrsRelearningSteps: SuspendedProperty<String> = createProperty(
+        type = StringSuspendedPropertyType,
+        key = "fsrs_relearning_steps",
+        initialValue = { "" },
+        affectSync = true
+    )
+
 }

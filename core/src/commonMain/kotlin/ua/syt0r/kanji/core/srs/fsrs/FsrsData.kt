@@ -8,7 +8,9 @@ data class FsrsCard(
     val params: FsrsCardParams,
     val interval: Duration,
     val lapses: Int,
-    val repeats: Int
+    val repeats: Int,
+    /** Current (re)learning step index, used only when learning steps are configured */
+    val step: Int = 0
 ) {
 
     val lastReview: Instant? = when (params) {

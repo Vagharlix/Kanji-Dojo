@@ -38,12 +38,18 @@ interface FsrsScheduler {
 
 /**
  * Schedules cards with the FSRS-7 memory model. FSRS-7 models short-term memory itself,
- * so there are no fixed learning steps: every interval (including same-day ones) is the
- * time at which predicted recall probability drops to the desired retention.
+ * so by default there are no fixed learning steps: every interval (including same-day
+ * ones) is the time at which predicted recall probability drops to the desired retention.
+ *
+ * Optional Anki-style [learningSteps] / [relearningSteps] override the intervals of new
+ * and lapsed cards until they graduate; memory states are still updated by FSRS on every
+ * review.
  */
 class DefaultFsrsScheduler(
     private val fsrs: Fsrs7 = Fsrs7(),
-    private val maxInterval: Duration = 36500.days
+    private val maxInterval: Duration = 36500.days,
+    private val learningSteps: List<Duration> = emptyList(),
+    private val relearningSteps: List<Duration> = emptyList()
 ) : FsrsScheduler {
 
     override fun newCard() = FsrsCard(
@@ -85,8 +91,7 @@ class DefaultFsrsScheduler(
         val goodInterval = goodRaw.atLeastAfter(hardInterval)
         val easyInterval = rawIntervals.getValue(Easy).atLeastAfter(goodInterval)
 
-        fun answer(rating: FsrsReviewRating, interval: Duration): FsrsCard {
-            val state = states.getValue(rating)
+        fun fsrsPlan(rating: FsrsReviewRating, interval: Duration): Plan {
             val status = when {
                 rating == Again -> when (card.status) {
                     New, Learning -> Learning
@@ -97,27 +102,88 @@ class DefaultFsrsScheduler(
                 card.status == Review || card.status == Relearning -> Relearning
                 else -> Learning
             }
+            return Plan(interval, status, step = 0)
+        }
+
+        val fsrsPlans = mapOf(
+            Again to fsrsPlan(Again, againInterval),
+            Hard to fsrsPlan(Hard, hardInterval),
+            Good to fsrsPlan(Good, goodInterval),
+            Easy to fsrsPlan(Easy, easyInterval)
+        )
+
+        val plans: Map<FsrsReviewRating, Plan> = when {
+            // Anki-style (re)learning steps
+            card.status != Review && stepsFor(card.status).isNotEmpty() -> {
+                val steps = stepsFor(card.status)
+                val stepStatus = if (card.status == Relearning) Relearning else Learning
+                val index = if (card.status == New) 0 else card.step.coerceIn(0, steps.lastIndex)
+                fun graduated(rating: FsrsReviewRating) = rawIntervals.getValue(rating)
+                    .coerceIn(1.days, maxInterval)
+
+                val good = when {
+                    index + 1 < steps.size -> Plan(steps[index + 1], stepStatus, index + 1)
+                    else -> Plan(graduated(Good), Review, 0)
+                }
+                val easyInterval = when (good.status) {
+                    Review -> graduated(Easy).atLeastAfter(good.interval)
+                    else -> graduated(Easy)
+                }
+                mapOf(
+                    Again to Plan(steps[0], stepStatus, 0),
+                    Hard to Plan(hardStepDelay(steps, index), stepStatus, index),
+                    Good to good,
+                    Easy to Plan(easyInterval, Review, 0)
+                )
+            }
+
+            // Lapse goes into relearning steps
+            card.status == Review && relearningSteps.isNotEmpty() -> fsrsPlans +
+                    (Again to Plan(relearningSteps[0], Relearning, 0))
+
+            else -> fsrsPlans
+        }
+
+        fun answer(rating: FsrsReviewRating): FsrsCard {
+            val state = states.getValue(rating)
+            val plan = plans.getValue(rating)
             val isLapse = rating == Again && card.status == Review
             return FsrsCard(
-                status = status,
+                status = plan.status,
                 params = FsrsCardParams.Existing(
                     difficulty = state.difficulty,
                     stability = state.longStability,
                     shortStability = state.shortStability,
                     reviewTime = reviewTime
                 ),
-                interval = interval,
+                interval = plan.interval,
                 lapses = if (isLapse) card.lapses + 1 else card.lapses,
-                repeats = card.repeats + 1
+                repeats = card.repeats + 1,
+                step = plan.step
             )
         }
 
         return FsrsAnswers(
-            again = answer(Again, againInterval),
-            hard = answer(Hard, hardInterval),
-            good = answer(Good, goodInterval),
-            easy = answer(Easy, easyInterval)
+            again = answer(Again),
+            hard = answer(Hard),
+            good = answer(Good),
+            easy = answer(Easy)
         )
+    }
+
+    private class Plan(val interval: Duration, val status: FsrsCardStatus, val step: Int)
+
+    private fun stepsFor(status: FsrsCardStatus): List<Duration> = when (status) {
+        New, Learning -> learningSteps
+        Relearning -> relearningSteps
+        Review -> emptyList()
+    }
+
+    /** Anki: on the first step Hard is between the first two steps, later it repeats the step. */
+    private fun hardStepDelay(steps: List<Duration>, index: Int): Duration = when {
+        index > 0 -> steps[index]
+        steps.size > 1 -> (steps[0] + steps[1]) / 2
+        else -> minOf(steps[0] * 1.5, steps[0] + 1.days)
     }
 
     /** Rounds sub-day intervals to whole minutes and longer ones to whole days. */

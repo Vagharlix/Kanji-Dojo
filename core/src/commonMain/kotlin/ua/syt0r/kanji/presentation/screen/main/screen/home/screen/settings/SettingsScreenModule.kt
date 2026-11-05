@@ -8,6 +8,11 @@ import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DailyResetTimeSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DesiredRetentionSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.FsrsParametersSettingItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.FsrsStepsSettingItem
+import ua.syt0r.kanji.Res
+import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
+import ua.syt0r.kanji.setting_fsrs_learning_steps_item
+import ua.syt0r.kanji.setting_fsrs_relearning_steps_item
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.MaxIntervalSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.PassFailSettingItem
 
@@ -34,6 +39,16 @@ val settingsScreenModule = module {
                 appPreferences = get(),
                 fsrsOptimizer = get(),
                 applyFsrsParametersUseCase = get()
+            ),
+            FsrsStepsSettingItem(
+                property = get<PreferencesContract.AppPreferences>().fsrsLearningSteps,
+                title = Res.string.setting_fsrs_learning_steps_item,
+                placeholder = "1m 10m"
+            ),
+            FsrsStepsSettingItem(
+                property = get<PreferencesContract.AppPreferences>().fsrsRelearningSteps,
+                title = Res.string.setting_fsrs_relearning_steps_item,
+                placeholder = "10m"
             ),
             MaxIntervalSettingItem(appPreferences = get()),
             PassFailSettingItem(appPreferences = get())

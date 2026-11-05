@@ -88,7 +88,8 @@ class SqlDelightFsrsCardRepository private constructor(
             repeats = card.repeats.toLong(),
             last_review = card.lastReview!!.toEpochMilliseconds(),
             interval = card.interval.inWholeMilliseconds,
-            short_stability = card.params.shortStability
+            short_stability = card.params.shortStability,
+            step = card.step.toLong()
         )
     }
 
@@ -119,7 +120,8 @@ class SqlDelightFsrsCardRepository private constructor(
             status = dbValueToSrcCardStatus.getValue(status.toInt()),
             interval = interval.milliseconds,
             lapses = lapses.toInt(),
-            repeats = repeats.toInt()
+            repeats = repeats.toInt(),
+            step = step.toInt()
         )
 
     }

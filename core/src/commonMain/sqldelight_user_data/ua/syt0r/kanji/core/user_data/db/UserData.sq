@@ -1,4 +1,4 @@
-PRAGMA user_version = 14;
+PRAGMA user_version = 15;
 
 getLastInsertRowId:
 SELECT last_insert_rowid();
@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS fsrs_card (
     last_review INTEGER NOT NULL,
     interval INTEGER NOT NULL,
     short_stability REAL NOT NULL DEFAULT -1,
+    step INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY(key, practice_type)
 );
 

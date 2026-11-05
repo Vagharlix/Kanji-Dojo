@@ -39,6 +39,7 @@ import ua.syt0r.kanji.Res
 import ua.syt0r.kanji.core.srs.fsrs.Fsrs7
 import ua.syt0r.kanji.core.srs.fsrs.Fsrs7Optimizer
 import ua.syt0r.kanji.core.srs.fsrs.FsrsParameters
+import ua.syt0r.kanji.core.srs.fsrs.FsrsSteps
 import ua.syt0r.kanji.core.srs.fsrs.MAX_MAX_INTERVAL_DAYS
 import ua.syt0r.kanji.core.srs.fsrs.MIN_MAX_INTERVAL_DAYS
 import ua.syt0r.kanji.core.srs.use_case.ApplyFsrsParametersUseCase
@@ -70,6 +71,9 @@ import ua.syt0r.kanji.setting_fsrs_parameters_optimizing
 import ua.syt0r.kanji.setting_fsrs_parameters_reschedule
 import ua.syt0r.kanji.setting_fsrs_parameters_reset
 import ua.syt0r.kanji.setting_fsrs_parameters_save
+import ua.syt0r.kanji.setting_fsrs_steps_description
+import ua.syt0r.kanji.setting_fsrs_steps_invalid
+import ua.syt0r.kanji.setting_fsrs_steps_none
 import ua.syt0r.kanji.setting_pass_fail_description
 import ua.syt0r.kanji.setting_pass_fail_item
 
@@ -430,6 +434,92 @@ class FsrsParametersSettingItem(
                 OptimizationState.NotEnoughData(e.reviews, e.required)
             }
         }
+    }
+
+}
+
+/** Anki-style learning or relearning steps, e.g. "1m 10m". Empty lets FSRS-7 decide. */
+class FsrsStepsSettingItem(
+    private val property: ua.syt0r.kanji.core.suspended_property.SuspendedProperty<String>,
+    private val title: org.jetbrains.compose.resources.StringResource,
+    private val placeholder: String
+) : SettingsScreenContract.ConfigurableListItem {
+
+    private lateinit var value: MutableState<String>
+    private lateinit var scope: CoroutineScope
+
+    override suspend fun prepare(coroutineScope: CoroutineScope) {
+        scope = coroutineScope
+        value = mutableStateOf(property.get())
+        property.onModified
+            .onEach { value.value = it }
+            .launchIn(coroutineScope)
+    }
+
+    @Composable
+    override fun content(mainNavigationState: MainNavigationState) {
+        var showDialog by remember { mutableStateOf(false) }
+        val steps = FsrsSteps.parse(value.value).orEmpty()
+
+        ListItem(
+            headlineContent = { Text(stringResource(title)) },
+            supportingContent = {
+                Text(
+                    if (steps.isEmpty()) stringResource(Res.string.setting_fsrs_steps_none)
+                    else FsrsSteps.format(steps)
+                )
+            },
+            modifier = Modifier.clip(MaterialTheme.shapes.medium)
+                .fillMaxWidth()
+                .clickable { showDialog = true }
+        )
+
+        if (!showDialog) return
+
+        var text by remember { mutableStateOf(FsrsSteps.format(steps)) }
+        val parsed = FsrsSteps.parse(text)
+
+        MultiplatformDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(title)) },
+            content = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        singleLine = true,
+                        isError = parsed == null,
+                        placeholder = { Text(placeholder) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = stringResource(
+                            if (parsed == null) Res.string.setting_fsrs_steps_invalid
+                            else Res.string.setting_fsrs_steps_description
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (parsed == null) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            buttons = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(resolveString { settings.pickerDialogCancel })
+                }
+                TextButton(
+                    enabled = parsed != null,
+                    onClick = {
+                        val newValue = FsrsSteps.format(parsed ?: return@TextButton)
+                        value.value = newValue
+                        scope.launch { property.set(newValue) }
+                        showDialog = false
+                    }
+                ) {
+                    Text(resolveString { settings.pickerDialogApply })
+                }
+            }
+        )
     }
 
 }
