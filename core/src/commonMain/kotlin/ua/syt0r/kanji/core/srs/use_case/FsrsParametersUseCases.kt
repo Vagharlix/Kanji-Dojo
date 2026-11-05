@@ -49,15 +49,6 @@ class FsrsOptimizer(
         return Fsrs7Optimizer.trainingItems(sequences)
     }
 
-    suspend fun reviewCount(): Int = trainingItems().sumOf { it.predictedReviews }
-
-    /** Evaluates the current parameters on the whole review history. */
-    suspend fun evaluateCurrent(): Fsrs7Optimizer.Metrics {
-        val items = trainingItems()
-        val parameters = fsrsConfigurationRepository.get().parameters
-        return withContext(Dispatchers.Default) { Fsrs7Optimizer().evaluate(items, parameters) }
-    }
-
     /**
      * Trains parameters starting from the defaults.
      * @throws Fsrs7Optimizer.NotEnoughDataException when there is too little history
@@ -103,7 +94,7 @@ class ApplyFsrsParametersUseCase(
         recalculate(reschedule)
     }
 
-    suspend fun recalculate(reschedule: Boolean) {
+    private suspend fun recalculate(reschedule: Boolean) {
         val configuration = fsrsConfigurationRepository.get()
         val history = reviewHistoryRepository.getAllReviews()
             .groupBy(

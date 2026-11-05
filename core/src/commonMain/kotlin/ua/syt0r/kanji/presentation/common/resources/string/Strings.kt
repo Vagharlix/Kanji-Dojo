@@ -281,8 +281,6 @@ interface DailyLimitStrings {
 
 interface StatsStrings {
     val todayTitle: String
-    val monthTitle: String
-    val monthLabel: (day: LocalDate) -> String
     val yearTitle: String
     val yearDaysPracticedLabel: (practicedDays: Int, daysInYear: Int) -> String
     val totalTitle: String

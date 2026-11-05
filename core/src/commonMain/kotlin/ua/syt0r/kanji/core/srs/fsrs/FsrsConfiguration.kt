@@ -12,7 +12,6 @@ import kotlin.time.Duration.Companion.days
 class FsrsConfiguration(
     val fsrs: Fsrs7,
     val parameters: List<Double>,
-    val isDefaultParameters: Boolean,
     val desiredRetention: Double,
     val maxInterval: Duration,
     val passFailMode: Boolean
@@ -46,7 +45,6 @@ class DefaultFsrsConfigurationRepository(
         return FsrsConfiguration(
             fsrs = fsrs,
             parameters = parameters,
-            isDefaultParameters = parsed == null,
             desiredRetention = (appPreferences.desiredRetentionPercent.get() / 100.0)
                 .coerceIn(MIN_DESIRED_RETENTION, MAX_DESIRED_RETENTION),
             maxInterval = appPreferences.fsrsMaxIntervalDays.get()

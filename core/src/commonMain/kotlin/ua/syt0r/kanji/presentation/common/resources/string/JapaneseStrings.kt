@@ -206,9 +206,6 @@ private fun formatDuration(duration: Duration): String = when {
 
 object JapaneseStatsStrings : StatsStrings {
     override val todayTitle: String = "今日"
-    override val monthTitle: String = "今月"
-    override val monthLabel: (day: LocalDate) -> String =
-        { "${it.year}年${it.monthNumber}月" }
     override val yearTitle: String = "今年"
     override val yearDaysPracticedLabel = { practicedDays: Int, daysInYear: Int ->
         "練習日数: $practicedDays/$daysInYear"
