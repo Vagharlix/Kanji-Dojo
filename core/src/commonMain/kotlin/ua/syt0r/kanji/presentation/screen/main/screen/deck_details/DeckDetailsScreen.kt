@@ -56,6 +56,8 @@ fun DeckDetailsScreen(
             val reviewConfiguration = viewModel.getPracticeConfiguration(group)
             mainNavigationState.navigate(reviewConfiguration)
         },
+        resetProgressCardsCount = { viewModel.resetProgressCardsCount(it) },
+        resetProgress = { viewModel.resetProgress(it) },
         startMultiselectReview = {
             val reviewConfiguration = viewModel.getMultiselectPracticeConfiguration()
             mainNavigationState.navigate(reviewConfiguration)

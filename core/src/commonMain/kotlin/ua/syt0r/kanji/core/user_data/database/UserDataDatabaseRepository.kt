@@ -55,6 +55,10 @@ interface FsrsCardRepository : ObservableRepository {
     suspend fun getAll(): Map<SrsCardKey, FsrsCard>
     suspend fun update(key: SrsCardKey, card: FsrsCard)
     suspend fun updateAll(cards: Map<SrsCardKey, FsrsCard>)
+
+    /** Makes the cards new again and records the reset time; review history is kept */
+    suspend fun reset(keys: Collection<SrsCardKey>, time: Instant)
+    suspend fun getResets(): Map<SrsCardKey, List<Instant>>
 }
 
 interface ReviewHistoryRepository {
@@ -62,6 +66,7 @@ interface ReviewHistoryRepository {
     suspend fun getReviews(start: Instant, end: Instant): List<ReviewHistoryItem>
     suspend fun getAllReviews(): List<ReviewHistoryItem>
     suspend fun getFirstReviewTime(key: String, practiceType: Long): Instant?
+    suspend fun getFirstReviewTimeAfter(key: String, practiceType: Long, after: Instant): Instant?
     suspend fun getDeckLastReview(deckId: Long, practiceTypes: List<Long>): Instant?
     suspend fun getTotalReviewsCount(): Long
     suspend fun getTotalReviewCount(key: String, practiceType: Long): Long

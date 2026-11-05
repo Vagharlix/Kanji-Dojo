@@ -70,3 +70,27 @@ class FsrsHistoryReplay(
     }
 
 }
+
+/**
+ * Splits a card's review logs at its progress resets: FSRS treats every reset as a fresh
+ * start, so each segment is an independent learning sequence. The last segment is the
+ * card's current one. Segments can be empty (e.g. reset and not reviewed since).
+ */
+fun splitAtResets(logs: List<FsrsReviewLog>, resets: List<Instant>): List<List<FsrsReviewLog>> {
+    val sorted = logs.sortedBy { it.timestamp }
+    if (resets.isEmpty()) return listOf(sorted)
+    val boundaries = resets.sorted()
+    return (0..boundaries.size).map { index ->
+        val from = boundaries.getOrNull(index - 1)
+        val to = boundaries.getOrNull(index)
+        sorted.filter { log ->
+            (from == null || log.timestamp > from) && (to == null || log.timestamp <= to)
+        }
+    }
+}
+
+/** Reviews since the card's last reset, the ones that define its current memory state. */
+fun reviewsSinceLastReset(logs: List<FsrsReviewLog>, resets: List<Instant>): List<FsrsReviewLog> {
+    val lastReset = resets.maxOrNull() ?: return logs.sortedBy { it.timestamp }
+    return logs.filter { it.timestamp > lastReset }.sortedBy { it.timestamp }
+}

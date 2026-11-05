@@ -104,4 +104,9 @@
     <string name="setting_fsrs_max_interval_invalid">%1$d〜%2$dの日数を入力してください</string>
     <string name="setting_pass_fail_item">合格/不合格ボタン</string>
     <string name="setting_pass_fail_description">採点時に「もう一度」と「正解」だけを表示します</string>
+    <string name="deck_details_reset_deck_progress">デッキの進捗をリセット</string>
+    <string name="deck_details_reset_selected_progress">選択した項目の進捗をリセット</string>
+    <string name="deck_details_reset_dialog_title">進捗をリセットしますか？</string>
+    <string name="deck_details_reset_dialog_message">%1$d枚のカードが%2$sの練習で新規に戻ります。復習履歴は残るため、統計とヒートマップは変わりません。</string>
+    <string name="deck_details_reset_dialog_confirm">リセット</string>
 </resources>

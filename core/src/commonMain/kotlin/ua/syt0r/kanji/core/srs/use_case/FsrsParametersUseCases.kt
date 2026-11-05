@@ -14,6 +14,8 @@ import ua.syt0r.kanji.core.srs.fsrs.FsrsConfigurationRepository
 import ua.syt0r.kanji.core.srs.fsrs.FsrsHistoryReplay
 import ua.syt0r.kanji.core.srs.fsrs.FsrsParameters
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewLog
+import ua.syt0r.kanji.core.srs.fsrs.reviewsSinceLastReset
+import ua.syt0r.kanji.core.srs.fsrs.splitAtResets
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
 import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import kotlin.coroutines.coroutineContext
@@ -29,16 +31,22 @@ data class FsrsOptimizationResult(
 
 class FsrsOptimizer(
     private val reviewHistoryRepository: ReviewHistoryRepository,
+    private val srsCardRepository: SrsCardRepository,
     private val fsrsConfigurationRepository: FsrsConfigurationRepository
 ) {
 
     private suspend fun trainingItems(): List<Fsrs7Optimizer.TrainingItem> {
+        val resets = srsCardRepository.getResets()
         val history = reviewHistoryRepository.getAllReviews()
             .groupBy(
-                keySelector = { it.key to it.practiceType },
+                keySelector = { SrsCardKey(it.key, it.practiceType) },
                 valueTransform = { FsrsReviewLog(it.timestamp, it.grade) }
             )
-        return Fsrs7Optimizer.trainingItems(history.values)
+        // Each stretch between resets is an independent learning sequence
+        val sequences = history.flatMap { (key, logs) ->
+            splitAtResets(logs, resets[key].orEmpty())
+        }
+        return Fsrs7Optimizer.trainingItems(sequences)
     }
 
     suspend fun reviewCount(): Int = trainingItems().sumOf { it.predictedReviews }
@@ -103,11 +111,12 @@ class ApplyFsrsParametersUseCase(
                 valueTransform = { FsrsReviewLog(it.timestamp, it.grade) }
             )
         val cards = srsCardRepository.getAll()
+        val resets = srsCardRepository.getResets()
 
         val updated: Map<SrsCardKey, SrsCard> = withContext(Dispatchers.Default) {
             val replay = FsrsHistoryReplay(configuration.fsrs, configuration.scheduler())
             cards.mapNotNull { (key, card) ->
-                val logs = history[key] ?: return@mapNotNull null
+                val logs = reviewsSinceLastReset(history[key].orEmpty(), resets[key].orEmpty())
                 val replayed = replay.replay(logs, configuration.desiredRetention)
                     .lastOrNull()?.cardAfter ?: return@mapNotNull null
                 val newCard = when {

@@ -29,6 +29,7 @@ val deckDetailsScreenModule = module {
             getConfigurationUseCase = get(),
             updateConfigurationUseCase = get(),
             getVisibleDataUseCase = get(),
+            resetSrsProgressUseCase = get(),
             analyticsManager = get()
         )
     }

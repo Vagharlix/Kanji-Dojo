@@ -21,6 +21,12 @@ interface DeckDetailsScreenContract {
         fun getPracticeConfiguration(group: DeckDetailsListItem.Group): MainDestination.LetterPractice
         fun getMultiselectPracticeConfiguration(): MainDestination
 
+        /** Number of cards a progress reset would affect (current practice type only) */
+        fun resetProgressCardsCount(selectedOnly: Boolean): Int
+
+        /** Makes the selected (or all) cards new again for the current practice type */
+        fun resetProgress(selectedOnly: Boolean)
+
     }
 
     sealed interface ScreenState {

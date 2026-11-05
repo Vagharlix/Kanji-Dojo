@@ -56,6 +56,7 @@ class DefaultVocabSrsManager(
     }
 
     override suspend fun getDeckDescriptors(): List<VocabSrsDeckDescriptor> {
+        val resets = srsCardRepository.getResets()
         return practiceRepository.getDecks().map {
             val items = practiceRepository.getCardIdList(it.id)
             val historyStats = reviewHistoryRepository
@@ -68,14 +69,17 @@ class DefaultVocabSrsManager(
                     val itemReviewStats = historyStats[wordId.toString()]
                     val practiceTypeStat = itemReviewStats?.practiceTypeToDataMap
                         ?.get(practiceType.srsPracticeType.value)
+                    val firstReview = reviewHistoryRepository.firstReviewSinceReset(
+                        key, card, practiceTypeStat?.firstReview, resets[key]
+                    )
                     SrsCardData(
                         key = key,
                         card = card,
                         status = getSrsStatus(card),
                         lapses = card?.fsrsCard?.lapses ?: 0,
                         repeats = card?.fsrsCard?.repeats ?: 0,
-                        firstReview = practiceTypeStat?.firstReview,
-                        firstReviewSrsDate = practiceTypeStat?.firstReview?.toSrsDate(),
+                        firstReview = firstReview,
+                        firstReviewSrsDate = firstReview?.toSrsDate(),
                         lastReview = card?.lastReview,
                         lastReviewSrsDate = card?.lastReview?.toSrsDate(),
                         expectedReviewDate = card?.expectedReview?.toSrsDate()

@@ -57,10 +57,14 @@ class DefaultLetterSrsManager(
     }
 
     override suspend fun getDeckDescriptors(): List<LetterSrsDeckDescriptor> {
-        return practiceRepository.getDecks().map { getDeckDescriptor(it) }
+        val resets = srsCardRepository.getResets()
+        return practiceRepository.getDecks().map { getDeckDescriptor(it, resets) }
     }
 
-    private suspend fun getDeckDescriptor(it: LetterDeck): LetterSrsDeckDescriptor {
+    private suspend fun getDeckDescriptor(
+        it: LetterDeck,
+        resets: Map<SrsCardKey, List<Instant>>
+    ): LetterSrsDeckDescriptor {
         val items = practiceRepository.getDeckCharacters(it.id)
         val historyStats = reviewHistoryRepository
             .getReviewHistoryStatsForKeys(keys = items.map { it })
@@ -72,14 +76,17 @@ class DefaultLetterSrsManager(
                 val itemReviewStats = historyStats[letter]
                 val practiceTypeStat = itemReviewStats?.practiceTypeToDataMap
                     ?.get(practiceType.srsPracticeType.value)
+                val firstReview = reviewHistoryRepository.firstReviewSinceReset(
+                    key, card, practiceTypeStat?.firstReview, resets[key]
+                )
                 SrsCardData(
                     key = key,
                     card = card,
                     status = getSrsStatus(card),
                     lapses = card?.fsrsCard?.lapses ?: 0,
                     repeats = card?.fsrsCard?.repeats ?: 0,
-                    firstReview = practiceTypeStat?.firstReview,
-                    firstReviewSrsDate = practiceTypeStat?.firstReview?.toSrsDate(),
+                    firstReview = firstReview,
+                    firstReviewSrsDate = firstReview?.toSrsDate(),
                     lastReview = card?.lastReview,
                     lastReviewSrsDate = card?.lastReview?.toSrsDate(),
                     expectedReviewDate = card?.expectedReview?.toSrsDate()

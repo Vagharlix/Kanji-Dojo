@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,11 +24,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import ua.syt0r.kanji.PlatformFeature
+import ua.syt0r.kanji.Res
+import ua.syt0r.kanji.deck_details_reset_deck_progress
+import ua.syt0r.kanji.deck_details_reset_selected_progress
+import ua.syt0r.kanji.presentation.common.AppDropdownMenu
+import ua.syt0r.kanji.presentation.common.AppDropdownMenuItem
 import ua.syt0r.kanji.presentation.common.resources.icon.DeselectAll
 import ua.syt0r.kanji.presentation.common.resources.icon.ExtraIcons
 import ua.syt0r.kanji.presentation.common.resources.icon.SelectAll
@@ -42,6 +52,7 @@ fun DeckDetailsToolbar(
     shareButtonClick: (String) -> Unit,
     onVisibilityButtonClick: () -> Unit,
     editButtonClick: () -> Unit,
+    resetProgressClick: (selectedOnly: Boolean) -> Unit,
 ) {
 
     TopAppBar(
@@ -57,7 +68,8 @@ fun DeckDetailsToolbar(
                 state = state,
                 shareButtonClick = shareButtonClick,
                 onVisibilityButtonClick = onVisibilityButtonClick,
-                editButtonClick = editButtonClick
+                editButtonClick = editButtonClick,
+                resetProgressClick = resetProgressClick
             )
         }
     )
@@ -145,6 +157,7 @@ private fun ToolbarActions(
     shareButtonClick: (String) -> Unit,
     onVisibilityButtonClick: () -> Unit,
     editButtonClick: () -> Unit,
+    resetProgressClick: (selectedOnly: Boolean) -> Unit,
 ) {
 
     val selectableDataState: DisplayingToolbarActions by remember {
@@ -200,6 +213,10 @@ private fun ToolbarActions(
                     ) {
                         Icon(Icons.Default.Edit, null)
                     }
+                    ResetProgressMenu(
+                        label = stringResource(Res.string.deck_details_reset_deck_progress),
+                        onClick = { resetProgressClick(false) }
+                    )
                 }
 
                 is DisplayingToolbarActions.Selection -> {
@@ -213,7 +230,35 @@ private fun ToolbarActions(
                     ) {
                         Icon(ExtraIcons.SelectAll, null)
                     }
+                    ResetProgressMenu(
+                        label = stringResource(Res.string.deck_details_reset_selected_progress),
+                        onClick = { resetProgressClick(true) }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResetProgressMenu(label: String, onClick: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Default.MoreVert, null)
+        }
+        AppDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            AppDropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onClick()
+                }
+            ) {
+                Icon(Icons.Default.Refresh, null)
+                Text(label)
             }
         }
     }

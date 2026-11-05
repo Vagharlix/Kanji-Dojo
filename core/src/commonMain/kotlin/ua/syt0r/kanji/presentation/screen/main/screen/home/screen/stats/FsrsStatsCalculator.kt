@@ -15,6 +15,7 @@ import ua.syt0r.kanji.core.srs.fsrs.FsrsCardParams
 import ua.syt0r.kanji.core.srs.fsrs.FsrsHistoryReplay
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewLog
 import ua.syt0r.kanji.core.srs.fsrs.retrievability
+import ua.syt0r.kanji.core.srs.fsrs.splitAtResets
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryItem
 import kotlin.time.Duration.Companion.days
 import kotlin.time.DurationUnit
@@ -34,7 +35,9 @@ class FsrsStatsCalculator(
         val today: LocalDate,
         val toSrsDate: (Instant) -> LocalDate,
         val desiredRetention: Double,
-        val forecastDays: Int = 30
+        val forecastDays: Int = 30,
+        /** Progress reset times per card; each reset starts a new learning sequence */
+        val resets: Map<SrsCardKey, List<Instant>> = emptyMap()
     )
 
     private class CountedReview(
@@ -109,7 +112,9 @@ class FsrsStatsCalculator(
         return input.reviews
             .groupBy { it.key to it.practiceType }
             .flatMap { (key, items) ->
-                val replayed = replay.replay(items.map { FsrsReviewLog(it.timestamp, it.grade) })
+                val logs = items.map { FsrsReviewLog(it.timestamp, it.grade) }
+                val resets = input.resets[SrsCardKey(key.first, key.second)].orEmpty()
+                val replayed = splitAtResets(logs, resets).flatMap { replay.replay(it) }
                 replayed.mapNotNull { review ->
                     val previousReview = (review.cardBefore.params as? FsrsCardParams.Existing)
                         ?.reviewTime

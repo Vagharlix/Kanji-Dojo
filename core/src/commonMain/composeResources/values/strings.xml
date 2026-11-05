@@ -191,4 +191,9 @@
     <string name="info_no_data_copy">Copy</string>
     <string name="info_no_data_jisho">Search on Jisho</string>
 
+    <string name="deck_details_reset_deck_progress">Reset deck progress</string>
+    <string name="deck_details_reset_selected_progress">Reset progress of selected</string>
+    <string name="deck_details_reset_dialog_title">Reset progress?</string>
+    <string name="deck_details_reset_dialog_message">%1$d cards will become new again for %2$s practice. Their review history is kept, so stats and the heatmap stay the same.</string>
+    <string name="deck_details_reset_dialog_confirm">Reset</string>
 </resources>

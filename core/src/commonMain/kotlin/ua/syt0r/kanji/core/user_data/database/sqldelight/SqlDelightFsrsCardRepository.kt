@@ -52,6 +52,26 @@ class SqlDelightFsrsCardRepository private constructor(
         writeTransaction { cards.forEach { (key, card) -> upsertFsrsCard(covert(key, card)) } }
     }
 
+    override suspend fun reset(keys: Collection<SrsCardKey>, time: Instant) {
+        val repoData = getRepoData()
+        keys.forEach { repoData.cardsMap.remove(it) }
+        writeTransaction {
+            keys.forEach { key ->
+                deleteFsrsCard(key.itemKey, key.practiceType)
+                insertFsrsCardReset(key.itemKey, key.practiceType, time.toEpochMilliseconds())
+            }
+        }
+    }
+
+    override suspend fun getResets(): Map<SrsCardKey, List<Instant>> = readTransaction {
+        getFsrsCardResets().executeAsList()
+            .groupBy(
+                keySelector = { SrsCardKey(it.key, it.practice_type) },
+                valueTransform = { Instant.fromEpochMilliseconds(it.timestamp) }
+            )
+            .mapValues { (_, times) -> times.sorted() }
+    }
+
     private suspend fun getRepoData(): RepoData {
         return cachedUserDataState.data.value.await()
     }

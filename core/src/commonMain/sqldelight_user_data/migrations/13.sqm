@@ -1,0 +1,10 @@
+PRAGMA user_version = 14;
+
+-- Moments when a card's SRS progress was reset. Review history is kept, FSRS treats each
+-- reset as a fresh start for the card.
+CREATE TABLE IF NOT EXISTS fsrs_card_reset (
+    key TEXT NOT NULL,
+    practice_type INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL,
+    PRIMARY KEY(key, practice_type, timestamp)
+);

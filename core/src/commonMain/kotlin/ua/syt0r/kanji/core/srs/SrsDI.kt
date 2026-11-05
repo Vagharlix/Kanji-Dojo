@@ -12,6 +12,7 @@ import ua.syt0r.kanji.core.srs.fsrs.FsrsScheduler
 import ua.syt0r.kanji.core.srs.use_case.ApplyFsrsParametersUseCase
 import ua.syt0r.kanji.core.srs.use_case.DefaultGetSrsStatusUseCase
 import ua.syt0r.kanji.core.srs.use_case.FsrsOptimizer
+import ua.syt0r.kanji.core.srs.use_case.ResetSrsProgressUseCase
 import ua.syt0r.kanji.core.srs.use_case.GetSrsStatusUseCase
 
 fun Module.applySrsDefinitions() {
@@ -35,7 +36,11 @@ fun Module.applySrsDefinitions() {
     }
 
     factory {
-        FsrsOptimizer(reviewHistoryRepository = get(), fsrsConfigurationRepository = get())
+        FsrsOptimizer(
+            reviewHistoryRepository = get(),
+            srsCardRepository = get(),
+            fsrsConfigurationRepository = get()
+        )
     }
 
     factory {
@@ -46,6 +51,8 @@ fun Module.applySrsDefinitions() {
             srsCardRepository = get()
         )
     }
+
+    factory { ResetSrsProgressUseCase(srsCardRepository = get(), timeUtils = get()) }
 
     factory<GetSrsStatusUseCase> {
         DefaultGetSrsStatusUseCase(timeUtils = get())

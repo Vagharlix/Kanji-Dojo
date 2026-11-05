@@ -91,6 +91,7 @@ class DefaultSubscribeOnStatsDataUseCase(
 
         val allReviews = reviewHistoryRepository.getAllReviews()
         val cards = srsCardRepository.getAll().mapValues { it.value.fsrsCard }
+        val resets = srsCardRepository.getResets()
         val fsrsConfiguration = fsrsConfigurationRepository.get()
         val fsrsStatsCalculator = FsrsStatsCalculator(fsrsConfiguration.fsrs)
         val now = timeUtils.now()
@@ -104,7 +105,8 @@ class DefaultSubscribeOnStatsDataUseCase(
                             now = now,
                             today = today,
                             toSrsDate = toSrsDate,
-                            desiredRetention = fsrsConfiguration.desiredRetention
+                            desiredRetention = fsrsConfiguration.desiredRetention,
+                            resets = resets
                         )
                     )
         }

@@ -56,6 +56,17 @@ class SqlDelightReviewHistoryRepository(
             ?.timestamp
     }
 
+    override suspend fun getFirstReviewTimeAfter(
+        key: String,
+        practiceType: Long,
+        after: Instant
+    ): Instant? = userDataDatabaseManager.readTransaction {
+        getFirstReviewAfter(key, practiceType, after.toEpochMilliseconds())
+            .executeAsOneOrNull()
+            ?.MIN
+            ?.let { Instant.fromEpochMilliseconds(it) }
+    }
+
     override suspend fun getDeckLastReview(
         deckId: Long,
         practiceTypes: List<Long>

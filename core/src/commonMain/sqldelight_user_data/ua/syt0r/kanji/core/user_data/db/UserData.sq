@@ -1,4 +1,4 @@
-PRAGMA user_version = 13;
+PRAGMA user_version = 14;
 
 getLastInsertRowId:
 SELECT last_insert_rowid();
@@ -142,6 +142,22 @@ VALUES ?;
 getFsrsCards:
 SELECT * FROM fsrs_card;
 
+deleteFsrsCard:
+DELETE FROM fsrs_card WHERE key = ? AND practice_type = ?;
+
+CREATE TABLE IF NOT EXISTS fsrs_card_reset (
+    key TEXT NOT NULL,
+    practice_type INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL,
+    PRIMARY KEY(key, practice_type, timestamp)
+);
+
+insertFsrsCardReset:
+INSERT OR REPLACE INTO fsrs_card_reset(key, practice_type, timestamp) VALUES (?, ?, ?);
+
+getFsrsCardResets:
+SELECT * FROM fsrs_card_reset;
+
 ------- REVIEW HISTORY -------
 
 CREATE TABLE IF NOT EXISTS review_history(
@@ -180,6 +196,11 @@ FROM review_history
 WHERE key = :itemKey AND practice_type = :practiceType
 ORDER BY timestamp
 LIMIT 1;
+
+getFirstReviewAfter:
+SELECT MIN(timestamp)
+FROM review_history
+WHERE key = :itemKey AND practice_type = :practiceType AND timestamp > :after;
 
 getLastReview:
 SELECT key, practice_type, timestamp, duration, grade, mistakes, deck_id

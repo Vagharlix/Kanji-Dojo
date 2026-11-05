@@ -1,5 +1,12 @@
 package ua.syt0r.kanji.presentation.screen.main.screen.deck_details
 
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import org.jetbrains.compose.resources.stringResource
+import ua.syt0r.kanji.Res
+import ua.syt0r.kanji.deck_details_reset_dialog_confirm
+import ua.syt0r.kanji.deck_details_reset_dialog_message
+import ua.syt0r.kanji.deck_details_reset_dialog_title
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
@@ -86,7 +93,55 @@ fun DeckDetailsScreenUI(
     navigateToCardDetails: (DeckDetailsListItem.Vocab) -> Unit,
     startGroupReview: (DeckDetailsListItem.Group) -> Unit,
     startMultiselectReview: () -> Unit,
+    resetProgressCardsCount: (selectedOnly: Boolean) -> Int,
+    resetProgress: (selectedOnly: Boolean) -> Unit,
 ) {
+
+    // Pending reset confirmation: selectedOnly flag and affected cards count
+    var resetConfirmation by remember { mutableStateOf<Pair<Boolean, Int>?>(null) }
+    resetConfirmation?.let { (selectedOnly, count) ->
+        val loadedState = state.value as? ScreenState.Loaded
+        val practiceTypeTitle = when (val configuration = loadedState?.configuration?.value) {
+            is DeckDetailsConfiguration.LetterDeckConfiguration ->
+                resolveString(configuration.practiceType.titleResolver)
+
+            is DeckDetailsConfiguration.VocabDeckConfiguration ->
+                resolveString(configuration.practiceType.titleResolver)
+
+            null -> ""
+        }
+        AlertDialog(
+            onDismissRequest = { resetConfirmation = null },
+            title = { Text(stringResource(Res.string.deck_details_reset_dialog_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        Res.string.deck_details_reset_dialog_message,
+                        count,
+                        practiceTypeTitle
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        resetConfirmation = null
+                        resetProgress(selectedOnly)
+                    }
+                ) {
+                    Text(
+                        text = stringResource(Res.string.deck_details_reset_dialog_confirm),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { resetConfirmation = null }) {
+                    Text(resolveString { settings.pickerDialogCancel })
+                }
+            }
+        )
+    }
 
     var shouldShowVisibilityDialog by remember { mutableStateOf(false) }
     if (shouldShowVisibilityDialog) {
@@ -135,12 +190,26 @@ fun DeckDetailsScreenUI(
 
         Scaffold(
             topBar = {
+                val noSelectionMessage = resolveString { deckDetails.multiselectNoSelected }
                 DeckDetailsToolbar(
                     state = state,
                     upButtonClick = navigateUp,
                     onVisibilityButtonClick = { shouldShowVisibilityDialog = true },
                     editButtonClick = navigateToDeckEdit,
-                    shareButtonClick = { practiceSharer.share(it) }
+                    shareButtonClick = { practiceSharer.share(it) },
+                    resetProgressClick = { selectedOnly ->
+                        val count = resetProgressCardsCount(selectedOnly)
+                        if (count == 0) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    message = noSelectionMessage,
+                                    withDismissAction = true
+                                )
+                            }
+                        } else {
+                            resetConfirmation = selectedOnly to count
+                        }
+                    }
                 )
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
