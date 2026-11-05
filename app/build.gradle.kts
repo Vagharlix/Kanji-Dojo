@@ -42,6 +42,16 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        // Personal test build: optimized like a release (smooth UI), but installs as
+        // "Kanji Dojo FSRS" next to the regular app and signed with the test key, so it can
+        // update a debug test build without losing data
+        create("optimized") {
+            initWith(release)
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-test"
+            matchingFallbacks += listOf("release")
+        }
     }
 
     flavorDimensions += "version"

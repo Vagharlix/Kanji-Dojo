@@ -1,7 +1,7 @@
 name: Build Test APK
 
-# Builds the personal test APK (debug build, "Kanji Dojo FSRS") and attaches it to the
-# workflow run as a downloadable artifact. Needs no secrets.
+# Builds the personal test APK (optimized build, "Kanji Dojo FSRS") and
+# attaches it to the workflow run as a downloadable artifact. Needs no secrets.
 on:
   push:
     branches: [ "feature/**", "develop" ]
@@ -29,7 +29,7 @@ jobs:
       - name: Build APK
         run: |
           chmod +x gradlew
-          ./gradlew app:assembleFdroidDebug --no-daemon
+          ./gradlew app:assembleFdroidOptimized --no-daemon
 
       - name: Run unit tests
         run: ./gradlew core:jvmTest --no-daemon
@@ -37,7 +37,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/fdroid/debug/*.apk "out/KanjiDojo-FSRS-${GITHUB_SHA::7}.apk"
+          cp app/build/outputs/apk/fdroid/optimized/*.apk "out/KanjiDojo-FSRS-${GITHUB_SHA::7}.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
