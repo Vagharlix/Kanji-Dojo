@@ -1,6 +1,7 @@
 package ua.syt0r.kanji.core.srs
 
 import kotlinx.datetime.Instant
+import kotlin.time.Duration
 import ua.syt0r.kanji.core.srs.fsrs.FsrsConfigurationRepository
 import ua.syt0r.kanji.core.srs.fsrs.FsrsReviewRating
 import ua.syt0r.kanji.core.srs.fsrs.FsrsScheduler
@@ -8,6 +9,7 @@ import ua.syt0r.kanji.core.srs.fsrs.FsrsScheduler
 interface SrsScheduler {
     fun newCard(): SrsCard
     suspend fun answers(data: SrsCard, reviewTime: Instant): SrsAnswers
+    suspend fun learnAheadLimit(): Duration
 }
 
 class DefaultSrsScheduler(
@@ -16,6 +18,10 @@ class DefaultSrsScheduler(
 ) : SrsScheduler {
 
     override fun newCard(): SrsCard = SrsCard(fsrsScheduler.newCard())
+
+    override suspend fun learnAheadLimit(): Duration {
+        return fsrsConfigurationRepository.get().learnAheadLimit
+    }
 
     override suspend fun answers(
         data: SrsCard,

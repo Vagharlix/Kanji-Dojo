@@ -19,7 +19,9 @@ class FsrsConfiguration(
     val maxInterval: Duration,
     val passFailMode: Boolean,
     val learningSteps: List<Duration> = emptyList(),
-    val relearningSteps: List<Duration> = emptyList()
+    val relearningSteps: List<Duration> = emptyList(),
+    /** Anki's learn ahead limit: how early a waiting learning card may be shown */
+    val learnAheadLimit: Duration = DEFAULT_LEARN_AHEAD_MINUTES.minutes
 ) {
     fun scheduler(): FsrsScheduler = DefaultFsrsScheduler(
         fsrs = fsrs,
@@ -46,7 +48,8 @@ class DefaultFsrsConfigurationRepository(
         appPreferences.fsrsMaxIntervalDays.onModified.map { },
         appPreferences.passFailMode.onModified.map { },
         appPreferences.fsrsLearningSteps.onModified.map { },
-        appPreferences.fsrsRelearningSteps.onModified.map { }
+        appPreferences.fsrsRelearningSteps.onModified.map { },
+        appPreferences.learnAheadMinutes.onModified.map { }
     )
 
     override suspend fun get(): FsrsConfiguration {
@@ -64,11 +67,17 @@ class DefaultFsrsConfigurationRepository(
                 .days,
             passFailMode = appPreferences.passFailMode.get(),
             learningSteps = FsrsSteps.parse(appPreferences.fsrsLearningSteps.get()).orEmpty(),
-            relearningSteps = FsrsSteps.parse(appPreferences.fsrsRelearningSteps.get()).orEmpty()
+            relearningSteps = FsrsSteps.parse(appPreferences.fsrsRelearningSteps.get()).orEmpty(),
+            learnAheadLimit = appPreferences.learnAheadMinutes.get()
+                .coerceIn(0, MAX_LEARN_AHEAD_MINUTES)
+                .minutes
         )
     }
 
 }
+
+const val DEFAULT_LEARN_AHEAD_MINUTES = 20
+const val MAX_LEARN_AHEAD_MINUTES = 24 * 60
 
 const val MIN_MAX_INTERVAL_DAYS = 1
 const val MAX_MAX_INTERVAL_DAYS = 36500

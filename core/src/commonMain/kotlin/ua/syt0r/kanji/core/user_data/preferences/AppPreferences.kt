@@ -261,4 +261,11 @@ class AppPreferences(
         affectSync = true
     )
 
+    override val learnAheadMinutes: SuspendedProperty<Int> = createProperty(
+        type = IntSuspendedPropertyType,
+        key = "learn_ahead_minutes",
+        initialValue = { 20 },
+        affectSync = true
+    )
+
 }

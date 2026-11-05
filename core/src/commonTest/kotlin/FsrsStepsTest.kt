@@ -87,4 +87,20 @@ class FsrsStepsTest {
         assertEquals(0, answers.good.step)
     }
 
+    @Test
+    fun passedReviewCardsStayReviewCardsLikeAnki() {
+        var card = scheduler.schedule(scheduler.newCard(), start).easy
+        var time = start
+        repeat(5) {
+            // Review much too early: FSRS-7 alone could propose a sub-day interval
+            time += 1.minutes
+            val answers = scheduler.schedule(card, time)
+            listOf(answers.hard, answers.good, answers.easy).forEach {
+                assertEquals(FsrsCardStatus.Review, it.status)
+                assertTrue(it.interval >= 1.days)
+            }
+            card = answers.good
+        }
+    }
+
 }

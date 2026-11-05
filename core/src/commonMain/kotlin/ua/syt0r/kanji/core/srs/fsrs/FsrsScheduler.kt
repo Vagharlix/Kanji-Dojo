@@ -92,6 +92,10 @@ class DefaultFsrsScheduler(
         val easyInterval = rawIntervals.getValue(Easy).atLeastAfter(goodInterval)
 
         fun fsrsPlan(rating: FsrsReviewRating, interval: Duration): Plan {
+            // Like Anki: a passed review card stays a review card, at least one day away
+            if (card.status == Review && rating != Again) {
+                return Plan(interval.coerceIn(1.days, maxInterval), Review, step = 0)
+            }
             val status = when {
                 rating == Again -> when (card.status) {
                     New, Learning -> Learning

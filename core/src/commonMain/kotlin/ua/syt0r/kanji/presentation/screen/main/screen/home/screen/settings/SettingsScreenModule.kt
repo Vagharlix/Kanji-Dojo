@@ -9,6 +9,7 @@ import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DesiredRetentionSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.FsrsParametersSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.FsrsStepsSettingItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.LearnAheadSettingItem
 import ua.syt0r.kanji.Res
 import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import ua.syt0r.kanji.setting_fsrs_learning_steps_item
@@ -50,6 +51,7 @@ val settingsScreenModule = module {
                 title = Res.string.setting_fsrs_relearning_steps_item,
                 placeholder = "10m"
             ),
+            LearnAheadSettingItem(appPreferences = get()),
             MaxIntervalSettingItem(appPreferences = get()),
             PassFailSettingItem(appPreferences = get())
         )

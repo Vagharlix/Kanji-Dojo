@@ -72,6 +72,9 @@ interface PreferencesContract {
 
         /** Anki-style relearning steps, e.g. "10m". Empty: FSRS-7 schedules them */
         val fsrsRelearningSteps: SuspendedProperty<String>
+
+        /** Anki's learn ahead limit in minutes */
+        val learnAheadMinutes: SuspendedProperty<Int>
     }
 
     interface PracticePreferences {

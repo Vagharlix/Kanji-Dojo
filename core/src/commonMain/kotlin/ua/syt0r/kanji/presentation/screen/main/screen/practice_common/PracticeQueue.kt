@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import ua.syt0r.kanji.core.analytics.AnalyticsManager
 import ua.syt0r.kanji.core.debounceFirst
+import ua.syt0r.kanji.core.srs.AnkiQueueOrder
 import ua.syt0r.kanji.core.srs.SrsAnswers
 import ua.syt0r.kanji.core.srs.SrsCard
 import ua.syt0r.kanji.core.srs.SrsCardKey
@@ -21,7 +22,6 @@ import ua.syt0r.kanji.core.srs.SrsScheduler
 import ua.syt0r.kanji.core.time.TimeUtils
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryItem
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
-import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
@@ -150,7 +150,8 @@ abstract class BasePracticeQueue<State, Descriptor, QueueItem, SummaryItem>(
         val reviewDuration = instant - currentReviewStartInstant
 
         if (answer.srsAnswer.card.interval < 1.days) {
-            placeItemBackToQueue(updatedItem)
+            // Comes back once it's due, see AnkiQueueOrder
+            queue.add(updatedItem)
         }
 
         updateState()
@@ -161,8 +162,9 @@ abstract class BasePracticeQueue<State, Descriptor, QueueItem, SummaryItem>(
     }
 
     private suspend fun updateState() {
-        val item = queue.getOrNull(0)
+        val item = if (moveNextItemToFront()) queue.getOrNull(0) else null
         if (item == null) {
+            // Done; learning cards that aren't due yet come back as due later, like in Anki
             immediateFinish()
         } else {
             if (!item.data.isCompleted) {
@@ -182,25 +184,16 @@ abstract class BasePracticeQueue<State, Descriptor, QueueItem, SummaryItem>(
         }
     }
 
-    private fun placeItemBackToQueue(
-        updatedQueueItem: QueueItem
-    ) {
-        val nextReviewTime = getExpectedReviewTime(updatedQueueItem.srsCard)
-        val insertPosition = queue.asSequence()
-            .map { getExpectedReviewTime(it.srsCard) }
-            .indexOfFirst { nextReviewTime < it }
-            .takeIf { it != -1 }
-            ?.let {
-                if (it == 0 && queue.size > 0) min(MIN_QUEUE_POSITION_SHIFT - 1, queue.size)
-                else min(it, MAX_QUEUE_POSITION_SHIFT - 1)
-            }
-            ?: min(queue.size, MAX_QUEUE_POSITION_SHIFT - 1)
-
-        queue.add(insertPosition, updatedQueueItem)
-    }
-
-    private fun getExpectedReviewTime(srsItem: SrsCard): Instant {
-        return (srsItem.lastReview ?: Instant.DISTANT_PAST) + srsItem.interval
+    /** Puts the card Anki would show next at the front, false if none can be shown now. */
+    private suspend fun moveNextItemToFront(): Boolean {
+        if (queue.isEmpty()) return false
+        val index = AnkiQueueOrder.nextIndex(
+            cards = queue.map { it.srsCard },
+            now = timeUtils.now(),
+            learnAhead = srsScheduler.learnAheadLimit()
+        ) ?: return false
+        if (index != 0) queue.add(0, queue.removeAt(index))
+        return true
     }
 
     private fun saveSummaryData(queueItem: QueueItem) {
@@ -235,11 +228,6 @@ abstract class BasePracticeQueue<State, Descriptor, QueueItem, SummaryItem>(
         reviewHistoryRepository.addReview(item)
     }
 
-
-    companion object {
-        private const val MIN_QUEUE_POSITION_SHIFT = 3
-        private const val MAX_QUEUE_POSITION_SHIFT = 10
-    }
 
 }
 

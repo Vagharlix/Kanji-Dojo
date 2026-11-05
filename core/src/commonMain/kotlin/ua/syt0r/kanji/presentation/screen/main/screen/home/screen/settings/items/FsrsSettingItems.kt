@@ -40,6 +40,7 @@ import ua.syt0r.kanji.core.srs.fsrs.Fsrs7
 import ua.syt0r.kanji.core.srs.fsrs.Fsrs7Optimizer
 import ua.syt0r.kanji.core.srs.fsrs.FsrsParameters
 import ua.syt0r.kanji.core.srs.fsrs.FsrsSteps
+import ua.syt0r.kanji.core.srs.fsrs.MAX_LEARN_AHEAD_MINUTES
 import ua.syt0r.kanji.core.srs.fsrs.MAX_MAX_INTERVAL_DAYS
 import ua.syt0r.kanji.core.srs.fsrs.MIN_MAX_INTERVAL_DAYS
 import ua.syt0r.kanji.core.srs.use_case.ApplyFsrsParametersUseCase
@@ -74,6 +75,9 @@ import ua.syt0r.kanji.setting_fsrs_parameters_save
 import ua.syt0r.kanji.setting_fsrs_steps_description
 import ua.syt0r.kanji.setting_fsrs_steps_invalid
 import ua.syt0r.kanji.setting_fsrs_steps_none
+import ua.syt0r.kanji.setting_learn_ahead_description
+import ua.syt0r.kanji.setting_learn_ahead_item
+import ua.syt0r.kanji.setting_learn_ahead_value
 import ua.syt0r.kanji.setting_pass_fail_description
 import ua.syt0r.kanji.setting_pass_fail_item
 
@@ -513,6 +517,81 @@ class FsrsStepsSettingItem(
                         val newValue = FsrsSteps.format(parsed ?: return@TextButton)
                         value.value = newValue
                         scope.launch { property.set(newValue) }
+                        showDialog = false
+                    }
+                ) {
+                    Text(resolveString { settings.pickerDialogApply })
+                }
+            }
+        )
+    }
+
+}
+
+/** Anki's learn ahead limit (Preferences → Review), in minutes. */
+class LearnAheadSettingItem(
+    private val appPreferences: PreferencesContract.AppPreferences
+) : SettingsScreenContract.ConfigurableListItem {
+
+    private lateinit var minutes: MutableState<Int>
+    private lateinit var scope: CoroutineScope
+
+    override suspend fun prepare(coroutineScope: CoroutineScope) {
+        scope = coroutineScope
+        minutes = mutableStateOf(appPreferences.learnAheadMinutes.get())
+        appPreferences.learnAheadMinutes.onModified
+            .onEach { minutes.value = it }
+            .launchIn(coroutineScope)
+    }
+
+    @Composable
+    override fun content(mainNavigationState: MainNavigationState) {
+        var showDialog by remember { mutableStateOf(false) }
+
+        ListItem(
+            headlineContent = { Text(stringResource(Res.string.setting_learn_ahead_item)) },
+            supportingContent = {
+                Text(stringResource(Res.string.setting_learn_ahead_value, minutes.value))
+            },
+            modifier = Modifier.clip(MaterialTheme.shapes.medium)
+                .fillMaxWidth()
+                .clickable { showDialog = true }
+        )
+
+        if (!showDialog) return
+
+        var text by remember { mutableStateOf(minutes.value.toString()) }
+        val parsed = text.trim().toIntOrNull()?.takeIf { it in 0..MAX_LEARN_AHEAD_MINUTES }
+
+        MultiplatformDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(stringResource(Res.string.setting_learn_ahead_item)) },
+            content = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it.filter { c -> c.isDigit() }.take(4) },
+                        singleLine = true,
+                        isError = parsed == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = stringResource(Res.string.setting_learn_ahead_description),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            buttons = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(resolveString { settings.pickerDialogCancel })
+                }
+                TextButton(
+                    enabled = parsed != null,
+                    onClick = {
+                        val value = parsed ?: return@TextButton
+                        minutes.value = value
+                        scope.launch { appPreferences.learnAheadMinutes.set(value) }
                         showDialog = false
                     }
                 ) {
