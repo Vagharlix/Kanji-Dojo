@@ -1,0 +1,47 @@
+name: Build Test APK
+
+# Builds the personal test APK (debug build, "Kanji Dojo FSRS") and attaches it to the
+# workflow run as a downloadable artifact. Needs no secrets.
+on:
+  push:
+    branches: [ "feature/**", "develop" ]
+    paths-ignore: [ "**.md" ]
+  workflow_dispatch:
+
+concurrency:
+  group: test-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew app:assembleFdroidDebug --no-daemon
+
+      - name: Run unit tests
+        run: ./gradlew core:jvmTest --no-daemon
+
+      - name: Rename APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/fdroid/debug/*.apk "out/KanjiDojo-FSRS-${GITHUB_SHA::7}.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KanjiDojo-FSRS-${{ github.sha }}
+          path: out/*.apk
+          retention-days: 30

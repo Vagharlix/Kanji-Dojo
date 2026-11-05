@@ -70,7 +70,17 @@ android {
         System.getenv("SIGN_PASS")?.let { keyPassword = it }
     }
 
-    val debugSigningConfig = signingConfigs.getByName("debug")
+    val debugSigningConfig = signingConfigs.getByName("debug").apply {
+        // Fixed, test-only debug key (standard "android" passwords) so test builds made on
+        // different machines, e.g. GitHub Actions, can be installed as updates of each other
+        val testKeystore = file("test-debug.keystore")
+        if (testKeystore.exists()) {
+            storeFile = testKeystore
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
 
     buildTypes.forEach {
         it.signingConfig = if (keystoreFile.exists()) {
