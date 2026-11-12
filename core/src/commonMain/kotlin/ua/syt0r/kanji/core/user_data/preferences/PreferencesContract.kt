@@ -67,10 +67,10 @@ interface PreferencesContract {
         /** Show only Again and Good answer buttons */
         val passFailMode: SuspendedProperty<Boolean>
 
-        /** Anki-style learning steps, e.g. "1m 10m". Empty: FSRS-7 schedules them */
+        /** Anki-style learning steps, e.g. "1m 10m". Empty: straight to day-based reviews */
         val fsrsLearningSteps: SuspendedProperty<String>
 
-        /** Anki-style relearning steps, e.g. "10m". Empty: FSRS-7 schedules them */
+        /** Anki-style relearning steps, e.g. "10m". Empty: straight to day-based reviews */
         val fsrsRelearningSteps: SuspendedProperty<String>
 
         /** Anki's learn ahead limit in minutes */

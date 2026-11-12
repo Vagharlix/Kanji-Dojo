@@ -61,8 +61,8 @@
     <string name="setting_fsrs_parameters_applying">Recalculating memory states...</string>
     <string name="setting_fsrs_learning_steps_item">Learning Steps</string>
     <string name="setting_fsrs_relearning_steps_item">Relearning Steps</string>
-    <string name="setting_fsrs_steps_none">None, FSRS-7 schedules same-day reviews</string>
-    <string name="setting_fsrs_steps_description">Delays separated by spaces, like Anki: s, m, h or d (a number alone means minutes), e.g. 1m 10m. A card goes through these steps before FSRS-7 schedules it in days. Leave empty to let FSRS-7 schedule same-day reviews itself, which is recommended for FSRS-7.</string>
+    <string name="setting_fsrs_steps_none">None: cards go straight to reviews in days, like Anki</string>
+    <string name="setting_fsrs_steps_description">Delays separated by spaces, like Anki: s, m, h or d (a number alone means minutes), e.g. 1m 10m. A card goes through these steps on the same day before FSRS-7 schedules it in days. Leave empty to skip same-day repetitions (cards go straight to reviews in days, like Anki). Anki default: 1m 10m for learning, 10m for relearning.</string>
     <string name="setting_fsrs_steps_invalid">Use delays like 30s, 10m, 1h or 1d, separated by spaces</string>
     <string name="setting_learn_ahead_item">Learn Ahead Limit</string>
     <string name="setting_learn_ahead_value">%1$d minutes</string>

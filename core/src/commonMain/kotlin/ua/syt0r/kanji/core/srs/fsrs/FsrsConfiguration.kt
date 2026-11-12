@@ -76,6 +76,10 @@ class DefaultFsrsConfigurationRepository(
 
 }
 
+/** Anki's defaults */
+const val DEFAULT_LEARNING_STEPS = "1m 10m"
+const val DEFAULT_RELEARNING_STEPS = "10m"
+
 const val DEFAULT_LEARN_AHEAD_MINUTES = 20
 const val MAX_LEARN_AHEAD_MINUTES = 24 * 60
 

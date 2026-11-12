@@ -78,13 +78,28 @@ class FsrsStepsTest {
     }
 
     @Test
-    fun withoutStepsFsrsSchedulesSameDayReviews() {
+    fun withoutStepsCardsGoStraightToDayBasedReviews() {
         val plain = DefaultFsrsScheduler(Fsrs7())
         val withSteps = scheduler.schedule(scheduler.newCard(), start)
-        val answers = plain.schedule(plain.newCard(), start)
-        // Memory states are the same, only the intervals differ
-        assertEquals(withSteps.good.params, answers.good.params)
-        assertEquals(0, answers.good.step)
+        var card = plain.newCard()
+        var time = start
+        // Like Anki with empty steps: never a same-day repetition, whatever the answer
+        listOf(1, 1, 3, 1, 2, 3, 4).forEach { grade ->
+            val answers = plain.schedule(card, time)
+            listOf(answers.again, answers.hard, answers.good, answers.easy).forEach {
+                assertEquals(FsrsCardStatus.Review, it.status)
+                assertTrue(it.interval >= 1.days)
+            }
+            card = when (grade) {
+                1 -> answers.again
+                2 -> answers.hard
+                3 -> answers.good
+                else -> answers.easy
+            }
+            time += card.interval
+        }
+        // Memory states don't depend on steps, only the intervals do
+        assertEquals(withSteps.good.params, plain.schedule(plain.newCard(), start).good.params)
     }
 
     @Test

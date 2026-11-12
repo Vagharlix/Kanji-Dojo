@@ -37,13 +37,13 @@ interface FsrsScheduler {
 }
 
 /**
- * Schedules cards with the FSRS-7 memory model. FSRS-7 models short-term memory itself,
- * so by default there are no fixed learning steps: every interval (including same-day
- * ones) is the time at which predicted recall probability drops to the desired retention.
+ * Schedules cards like Anki does with FSRS, using the FSRS-7 memory model.
  *
- * Optional Anki-style [learningSteps] / [relearningSteps] override the intervals of new
- * and lapsed cards until they graduate; memory states are still updated by FSRS on every
- * review.
+ * Same-day repetitions only come from Anki-style [learningSteps] / [relearningSteps]
+ * (new and lapsed cards go through them before graduating). Everything else is a review
+ * scheduled in whole days (at least one) at the time predicted recall drops to the desired
+ * retention. With empty steps, cards go straight to day-based reviews, like in Anki.
+ * Memory states are updated by FSRS-7 on every review, including same-day ones.
  */
 class DefaultFsrsScheduler(
     private val fsrs: Fsrs7 = Fsrs7(),
@@ -84,36 +84,22 @@ class DefaultFsrsScheduler(
             toInterval(fsrs.interval(state, retention))
         }
 
-        // Keep the buttons ordered: again <= hard <= good <= easy
-        val againInterval = rawIntervals.getValue(Again)
-        val goodRaw = rawIntervals.getValue(Good)
-        val hardInterval = maxOf(againInterval, minOf(rawIntervals.getValue(Hard), goodRaw))
-        val goodInterval = goodRaw.atLeastAfter(hardInterval)
-        val easyInterval = rawIntervals.getValue(Easy).atLeastAfter(goodInterval)
-
-        fun fsrsPlan(rating: FsrsReviewRating, interval: Duration): Plan {
-            // Like Anki: a passed review card stays a review card, at least one day away
-            if (card.status == Review && rating != Again) {
-                return Plan(interval.coerceIn(1.days, maxInterval), Review, step = 0)
-            }
-            val status = when {
-                rating == Again -> when (card.status) {
-                    New, Learning -> Learning
-                    Review, Relearning -> Relearning
-                }
-
-                interval >= 1.days -> Review
-                card.status == Review || card.status == Relearning -> Relearning
-                else -> Learning
-            }
-            return Plan(interval, status, step = 0)
+        // Day-based review intervals, ordered: again <= hard < good < easy
+        val dayIntervals = rawIntervals.mapValues { (_, interval) ->
+            interval.coerceIn(1.days, maxInterval)
         }
+        val againInterval = dayIntervals.getValue(Again)
+        val goodRaw = dayIntervals.getValue(Good)
+        val hardInterval = maxOf(againInterval, minOf(dayIntervals.getValue(Hard), goodRaw))
+        val goodInterval = goodRaw.atLeastAfter(hardInterval)
+        val easyInterval = dayIntervals.getValue(Easy).atLeastAfter(goodInterval)
 
+        // Without (re)learning steps every answer leads to a day-based review, like in Anki
         val fsrsPlans = mapOf(
-            Again to fsrsPlan(Again, againInterval),
-            Hard to fsrsPlan(Hard, hardInterval),
-            Good to fsrsPlan(Good, goodInterval),
-            Easy to fsrsPlan(Easy, easyInterval)
+            Again to Plan(againInterval, Review, step = 0),
+            Hard to Plan(hardInterval, Review, step = 0),
+            Good to Plan(goodInterval, Review, step = 0),
+            Easy to Plan(easyInterval, Review, step = 0)
         )
 
         val plans: Map<FsrsReviewRating, Plan> = when {

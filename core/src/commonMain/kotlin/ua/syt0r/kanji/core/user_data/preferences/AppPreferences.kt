@@ -2,6 +2,8 @@ package ua.syt0r.kanji.core.user_data.preferences
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
+import ua.syt0r.kanji.core.srs.fsrs.DEFAULT_LEARNING_STEPS
+import ua.syt0r.kanji.core.srs.fsrs.DEFAULT_RELEARNING_STEPS
 import ua.syt0r.kanji.core.suspended_property.BooleanSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.EnumSuspendedPropertyType.Companion.enumSuspendedPropertyType
 import ua.syt0r.kanji.core.suspended_property.InstantSuspendedPropertyType
@@ -250,14 +252,14 @@ class AppPreferences(
     override val fsrsLearningSteps: SuspendedProperty<String> = createProperty(
         type = StringSuspendedPropertyType,
         key = "fsrs_learning_steps",
-        initialValue = { "" },
+        initialValue = { DEFAULT_LEARNING_STEPS },
         affectSync = true
     )
 
     override val fsrsRelearningSteps: SuspendedProperty<String> = createProperty(
         type = StringSuspendedPropertyType,
         key = "fsrs_relearning_steps",
-        initialValue = { "" },
+        initialValue = { DEFAULT_RELEARNING_STEPS },
         affectSync = true
     )
 

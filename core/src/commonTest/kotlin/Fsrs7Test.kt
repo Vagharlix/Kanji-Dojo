@@ -160,8 +160,9 @@ class Fsrs7Test {
 
         val again = scheduler.schedule(card, time).again
         assertEquals(lapsesBefore + 1, again.lapses)
-        assertEquals(FsrsCardStatus.Relearning, again.status)
-        assertTrue(again.interval < 1.days)
+        // No relearning steps: like Anki, the card stays a review card, a day or more away
+        assertEquals(FsrsCardStatus.Review, again.status)
+        assertTrue(again.interval >= 1.days)
     }
 
     @Test

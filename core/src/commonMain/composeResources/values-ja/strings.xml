@@ -100,8 +100,8 @@
     <string name="setting_fsrs_parameters_applying">記憶状態を再計算しています...</string>
     <string name="setting_fsrs_learning_steps_item">学習ステップ</string>
     <string name="setting_fsrs_relearning_steps_item">再学習ステップ</string>
-    <string name="setting_fsrs_steps_none">なし（FSRS-7が当日の復習をスケジュール）</string>
-    <string name="setting_fsrs_steps_description">Ankiと同じく、スペース区切りの間隔を入力します: s、m、h、d（数字のみは分）、例: 1m 10m。カードはこれらのステップを終えてからFSRS-7によって日単位でスケジュールされます。空欄にするとFSRS-7が当日の復習を自動でスケジュールします（FSRS-7ではこちらを推奨）。</string>
+    <string name="setting_fsrs_steps_none">なし：Ankiと同じく、カードはすぐに日単位の復習になります</string>
+    <string name="setting_fsrs_steps_description">Ankiと同じく、スペース区切りの間隔を入力します: s、m、h、d（数字のみは分）、例: 1m 10m。カードは当日にこれらのステップを終えてから、FSRS-7によって日単位でスケジュールされます。空欄にすると当日の繰り返しはなく、Ankiと同じくすぐに日単位の復習になります。Ankiのデフォルト: 学習 1m 10m、再学習 10m。</string>
     <string name="setting_fsrs_steps_invalid">30s、10m、1h、1dのような間隔をスペース区切りで入力してください</string>
     <string name="setting_learn_ahead_item">先行学習の上限</string>
     <string name="setting_learn_ahead_value">%1$d分</string>
