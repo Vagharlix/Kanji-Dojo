@@ -5,7 +5,6 @@ name: Build Test APK
 on:
   push:
     branches: [ "feature/**", "develop" ]
-    paths-ignore: [ "**.md" ]
   workflow_dispatch:
 
 concurrency:
